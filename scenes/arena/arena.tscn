@@ -1,0 +1,322 @@
+[gd_scene load_steps=15 format=3 uid="uid://c6a8arena001"]
+
+[ext_resource type="Script" path="res://scripts/arena/arena.gd" id="1_arena"]
+[ext_resource type="Texture2D" path="res://assets/kenney_tiny_dungeon/Tiles/tile_0037.png" id="2_floor"]
+[ext_resource type="Texture2D" path="res://assets/kenney_tiny_dungeon/Tiles/tile_0038.png" id="3_floor_cracked"]
+[ext_resource type="Texture2D" path="res://assets/kenney_tiny_dungeon/Tiles/tile_0040.png" id="4_stone_wall"]
+[ext_resource type="Texture2D" path="res://assets/kenney_tiny_dungeon/Tiles/tile_0131.png" id="5_torch"]
+[ext_resource type="Texture2D" path="res://assets/kenney_tiny_dungeon/Tiles/tile_0055.png" id="6_brazier"]
+[ext_resource type="PackedScene" path="res://scenes/entities/player/player.tscn" id="7_player"]
+[ext_resource type="PackedScene" path="res://scenes/entities/companion/companion.tscn" id="8_comp"]
+[ext_resource type="PackedScene" path="res://scenes/ui/hud/hud.tscn" id="9_hud"]
+[ext_resource type="PackedScene" path="res://scenes/ui/gacha_screen/gacha_screen.tscn" id="10_gacha"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_top"]
+size = Vector2(1400, 100)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_bottom"]
+size = Vector2(1400, 100)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_left"]
+size = Vector2(100, 1000)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_right"]
+size = Vector2(100, 1000)
+
+[node name="Arena" type="Node2D"]
+script = ExtResource("1_arena")
+
+[node name="Floor" type="TextureRect" parent="."]
+modulate = Color(0.82, 0.8, 0.78, 1)
+z_index = -12
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -650.0
+offset_top = -450.0
+offset_right = 650.0
+offset_bottom = 450.0
+grow_horizontal = 2
+grow_vertical = 2
+texture = ExtResource("2_floor")
+stretch_mode = 1
+
+[node name="FloorBorders" type="Node2D" parent="."]
+z_index = -11
+
+[node name="BorderTop" type="TextureRect" parent="FloorBorders"]
+modulate = Color(0.78, 0.75, 0.72, 0.9)
+offset_left = -600.0
+offset_top = -396.0
+offset_right = 600.0
+offset_bottom = -364.0
+texture = ExtResource("3_floor_cracked")
+stretch_mode = 1
+
+[node name="BorderBottom" type="TextureRect" parent="FloorBorders"]
+modulate = Color(0.78, 0.75, 0.72, 0.9)
+offset_left = -600.0
+offset_top = 364.0
+offset_right = 600.0
+offset_bottom = 396.0
+texture = ExtResource("3_floor_cracked")
+stretch_mode = 1
+
+[node name="BorderLeft" type="TextureRect" parent="FloorBorders"]
+modulate = Color(0.78, 0.75, 0.72, 0.9)
+offset_left = -596.0
+offset_top = -396.0
+offset_right = -564.0
+offset_bottom = 396.0
+texture = ExtResource("3_floor_cracked")
+stretch_mode = 1
+
+[node name="BorderRight" type="TextureRect" parent="FloorBorders"]
+modulate = Color(0.78, 0.75, 0.72, 0.9)
+offset_left = 564.0
+offset_top = -396.0
+offset_right = 596.0
+offset_bottom = 396.0
+texture = ExtResource("3_floor_cracked")
+stretch_mode = 1
+
+[node name="CenterRing" type="TextureRect" parent="FloorBorders"]
+visible = false
+modulate = Color(0.85, 0.82, 0.8, 0.85)
+offset_left = -120.0
+offset_top = -120.0
+offset_right = 120.0
+offset_bottom = 120.0
+texture = ExtResource("3_floor_cracked")
+stretch_mode = 1
+
+[node name="PerimeterWalls" type="Node2D" parent="."]
+z_index = -8
+
+[node name="WallTop" type="TextureRect" parent="PerimeterWalls"]
+modulate = Color(0.8, 0.78, 0.75, 1)
+offset_left = -600.0
+offset_top = -420.0
+offset_right = 600.0
+offset_bottom = -396.0
+texture = ExtResource("4_stone_wall")
+stretch_mode = 1
+
+[node name="WallBottom" type="TextureRect" parent="PerimeterWalls"]
+modulate = Color(0.75, 0.72, 0.7, 1)
+offset_left = -600.0
+offset_top = 396.0
+offset_right = 600.0
+offset_bottom = 420.0
+texture = ExtResource("4_stone_wall")
+stretch_mode = 1
+
+[node name="WallLeft" type="TextureRect" parent="PerimeterWalls"]
+modulate = Color(0.78, 0.75, 0.72, 1)
+offset_left = -620.0
+offset_top = -420.0
+offset_right = -596.0
+offset_bottom = 420.0
+texture = ExtResource("4_stone_wall")
+stretch_mode = 1
+
+[node name="WallRight" type="TextureRect" parent="PerimeterWalls"]
+modulate = Color(0.78, 0.75, 0.72, 1)
+offset_left = 596.0
+offset_top = -420.0
+offset_right = 620.0
+offset_bottom = 420.0
+texture = ExtResource("4_stone_wall")
+stretch_mode = 1
+
+[node name="AtmosphereTorches" type="Node2D" parent="."]
+z_index = -5
+
+[node name="TorchT1" type="Sprite2D" parent="AtmosphereTorches"]
+modulate = Color(1.3, 0.95, 0.5, 1)
+position = Vector2(-500, -396)
+texture = ExtResource("5_torch")
+
+[node name="TorchT2" type="Sprite2D" parent="AtmosphereTorches"]
+modulate = Color(1.3, 0.95, 0.5, 1)
+position = Vector2(-375, -396)
+texture = ExtResource("5_torch")
+
+[node name="TorchT3" type="Sprite2D" parent="AtmosphereTorches"]
+modulate = Color(1.3, 0.95, 0.5, 1)
+position = Vector2(-250, -396)
+texture = ExtResource("5_torch")
+
+[node name="TorchT4" type="Sprite2D" parent="AtmosphereTorches"]
+modulate = Color(1.3, 0.95, 0.5, 1)
+position = Vector2(-125, -396)
+texture = ExtResource("5_torch")
+
+[node name="TorchT5" type="Sprite2D" parent="AtmosphereTorches"]
+modulate = Color(1.3, 0.95, 0.5, 1)
+position = Vector2(0, -396)
+texture = ExtResource("5_torch")
+
+[node name="TorchT6" type="Sprite2D" parent="AtmosphereTorches"]
+modulate = Color(1.3, 0.95, 0.5, 1)
+position = Vector2(125, -396)
+texture = ExtResource("5_torch")
+
+[node name="TorchT7" type="Sprite2D" parent="AtmosphereTorches"]
+modulate = Color(1.3, 0.95, 0.5, 1)
+position = Vector2(250, -396)
+texture = ExtResource("5_torch")
+
+[node name="TorchT8" type="Sprite2D" parent="AtmosphereTorches"]
+modulate = Color(1.3, 0.95, 0.5, 1)
+position = Vector2(375, -396)
+texture = ExtResource("5_torch")
+
+[node name="TorchT9" type="Sprite2D" parent="AtmosphereTorches"]
+modulate = Color(1.3, 0.95, 0.5, 1)
+position = Vector2(500, -396)
+texture = ExtResource("5_torch")
+
+[node name="TorchB1" type="Sprite2D" parent="AtmosphereTorches"]
+modulate = Color(1.3, 0.95, 0.5, 1)
+position = Vector2(-500, 396)
+texture = ExtResource("5_torch")
+
+[node name="TorchB2" type="Sprite2D" parent="AtmosphereTorches"]
+modulate = Color(1.3, 0.95, 0.5, 1)
+position = Vector2(-375, 396)
+texture = ExtResource("5_torch")
+
+[node name="TorchB3" type="Sprite2D" parent="AtmosphereTorches"]
+modulate = Color(1.3, 0.95, 0.5, 1)
+position = Vector2(-250, 396)
+texture = ExtResource("5_torch")
+
+[node name="TorchB4" type="Sprite2D" parent="AtmosphereTorches"]
+modulate = Color(1.3, 0.95, 0.5, 1)
+position = Vector2(-125, 396)
+texture = ExtResource("5_torch")
+
+[node name="TorchB5" type="Sprite2D" parent="AtmosphereTorches"]
+modulate = Color(1.3, 0.95, 0.5, 1)
+position = Vector2(0, 396)
+texture = ExtResource("5_torch")
+
+[node name="TorchB6" type="Sprite2D" parent="AtmosphereTorches"]
+modulate = Color(1.3, 0.95, 0.5, 1)
+position = Vector2(125, 396)
+texture = ExtResource("5_torch")
+
+[node name="TorchB7" type="Sprite2D" parent="AtmosphereTorches"]
+modulate = Color(1.3, 0.95, 0.5, 1)
+position = Vector2(250, 396)
+texture = ExtResource("5_torch")
+
+[node name="TorchB8" type="Sprite2D" parent="AtmosphereTorches"]
+modulate = Color(1.3, 0.95, 0.5, 1)
+position = Vector2(375, 396)
+texture = ExtResource("5_torch")
+
+[node name="TorchB9" type="Sprite2D" parent="AtmosphereTorches"]
+modulate = Color(1.3, 0.95, 0.5, 1)
+position = Vector2(500, 396)
+texture = ExtResource("5_torch")
+
+[node name="TorchL1" type="Sprite2D" parent="AtmosphereTorches"]
+modulate = Color(1.3, 0.95, 0.5, 1)
+position = Vector2(-596, -240)
+texture = ExtResource("5_torch")
+
+[node name="TorchL2" type="Sprite2D" parent="AtmosphereTorches"]
+modulate = Color(1.3, 0.95, 0.5, 1)
+position = Vector2(-596, -80)
+texture = ExtResource("5_torch")
+
+[node name="TorchL3" type="Sprite2D" parent="AtmosphereTorches"]
+modulate = Color(1.3, 0.95, 0.5, 1)
+position = Vector2(-596, 80)
+texture = ExtResource("5_torch")
+
+[node name="TorchL4" type="Sprite2D" parent="AtmosphereTorches"]
+modulate = Color(1.3, 0.95, 0.5, 1)
+position = Vector2(-596, 240)
+texture = ExtResource("5_torch")
+
+[node name="TorchR1" type="Sprite2D" parent="AtmosphereTorches"]
+modulate = Color(1.3, 0.95, 0.5, 1)
+position = Vector2(596, -240)
+texture = ExtResource("5_torch")
+
+[node name="TorchR2" type="Sprite2D" parent="AtmosphereTorches"]
+modulate = Color(1.3, 0.95, 0.5, 1)
+position = Vector2(596, -80)
+texture = ExtResource("5_torch")
+
+[node name="TorchR3" type="Sprite2D" parent="AtmosphereTorches"]
+modulate = Color(1.3, 0.95, 0.5, 1)
+position = Vector2(596, 80)
+texture = ExtResource("5_torch")
+
+[node name="TorchR4" type="Sprite2D" parent="AtmosphereTorches"]
+modulate = Color(1.3, 0.95, 0.5, 1)
+position = Vector2(596, 240)
+texture = ExtResource("5_torch")
+
+[node name="BrazierTopLeft" type="Sprite2D" parent="AtmosphereTorches"]
+modulate = Color(1.2, 0.9, 0.6, 1)
+position = Vector2(-570, -370)
+texture = ExtResource("6_brazier")
+
+[node name="BrazierTopRight" type="Sprite2D" parent="AtmosphereTorches"]
+modulate = Color(1.2, 0.9, 0.6, 1)
+position = Vector2(570, -370)
+texture = ExtResource("6_brazier")
+
+[node name="BrazierBotLeft" type="Sprite2D" parent="AtmosphereTorches"]
+modulate = Color(1.2, 0.9, 0.6, 1)
+position = Vector2(-570, 370)
+texture = ExtResource("6_brazier")
+
+[node name="BrazierBotRight" type="Sprite2D" parent="AtmosphereTorches"]
+modulate = Color(1.2, 0.9, 0.6, 1)
+position = Vector2(570, 370)
+texture = ExtResource("6_brazier")
+
+[node name="ArenaBoundaries" type="StaticBody2D" parent="."]
+collision_mask = 0
+
+[node name="WallTop" type="CollisionShape2D" parent="ArenaBoundaries"]
+position = Vector2(0, -446)
+shape = SubResource("RectangleShape2D_top")
+
+[node name="WallBottom" type="CollisionShape2D" parent="ArenaBoundaries"]
+position = Vector2(0, 446)
+shape = SubResource("RectangleShape2D_bottom")
+
+[node name="WallLeft" type="CollisionShape2D" parent="ArenaBoundaries"]
+position = Vector2(-646, 0)
+shape = SubResource("RectangleShape2D_left")
+
+[node name="WallRight" type="CollisionShape2D" parent="ArenaBoundaries"]
+position = Vector2(646, 0)
+shape = SubResource("RectangleShape2D_right")
+
+[node name="Player" parent="." instance=ExtResource("7_player")]
+position = Vector2(0, 0)
+
+[node name="Camera2D" type="Camera2D" parent="Player"]
+limit_left = -600
+limit_top = -400
+limit_right = 600
+limit_bottom = 400
+position_smoothing_enabled = true
+position_smoothing_speed = 8.0
+
+[node name="Companion" parent="." instance=ExtResource("8_comp")]
+position = Vector2(35, 20)
+
+[node name="HUD" parent="." instance=ExtResource("9_hud")]
+
+[node name="GachaScreen" parent="." instance=ExtResource("10_gacha")]

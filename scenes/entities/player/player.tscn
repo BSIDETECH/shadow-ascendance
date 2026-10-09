@@ -1,0 +1,68 @@
+[gd_scene load_steps=8 format=3 uid="uid://c7p2player001"]
+
+[ext_resource type="Script" path="res://scripts/entities/player.gd" id="1_player"]
+[ext_resource type="Texture2D" path="res://assets/kenney_tiny_dungeon/Tiles/tile_0084.png" id="2_texture"]
+[ext_resource type="Script" path="res://scripts/combat/health_component.gd" id="3_health"]
+[ext_resource type="Script" path="res://scripts/combat/hurtbox_component.gd" id="4_hurtbox"]
+[ext_resource type="Script" path="res://scripts/combat/hitbox_component.gd" id="5_hitbox"]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_player"]
+radius = 7.0
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_hurt"]
+radius = 8.0
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_magnet"]
+radius = 75.0
+
+[node name="Player" type="CharacterBody2D"]
+collision_layer = 2
+collision_mask = 5
+motion_mode = 1
+script = ExtResource("1_player")
+
+[node name="Sprite2D" type="Sprite2D" parent="."]
+modulate = Color(0.9, 0.85, 1.1, 1.0)
+texture = ExtResource("2_texture")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+shape = SubResource("CircleShape2D_player")
+
+[node name="HealthComponent" type="Node" parent="."]
+script = ExtResource("3_health")
+max_health = 100.0
+
+[node name="HurtboxComponent" type="Area2D" parent="." node_paths=PackedStringArray("health_component")]
+collision_layer = 2
+collision_mask = 16
+script = ExtResource("4_hurtbox")
+health_component = NodePath("../HealthComponent")
+team_index = 0
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="HurtboxComponent"]
+shape = SubResource("CircleShape2D_hurt")
+
+[node name="SlashPivot" type="Node2D" parent="."]
+
+[node name="SlashVisual" type="Polygon2D" parent="SlashPivot"]
+visible = false
+color = Color(0.6, 0.1, 0.9, 0.85)
+polygon = PackedVector2Array(0, -14, 26, -20, 42, 0, 26, 20, 0, 14, 18, 0)
+
+[node name="SlashHitbox" type="Area2D" parent="SlashPivot"]
+collision_layer = 8
+collision_mask = 4
+monitoring = false
+script = ExtResource("5_hitbox")
+damage_amount = 26.0
+team_index = 0
+
+[node name="CollisionPolygon2D" type="CollisionPolygon2D" parent="SlashPivot/SlashHitbox"]
+polygon = PackedVector2Array(0, -16, 28, -22, 44, 0, 28, 22, 0, 16, 20, 0)
+
+[node name="MagnetArea" type="Area2D" parent="."]
+collision_layer = 0
+collision_mask = 32
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="MagnetArea"]
+shape = SubResource("CircleShape2D_magnet")

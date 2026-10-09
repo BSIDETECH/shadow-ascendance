@@ -1,0 +1,30 @@
+# Godot 4+ .gitignore
+
+# Godot-specific ignores
+.godot/
+*.translation
+
+# Imported resources
+*.import
+
+# Mono/C# specific ignores (if any used in future)
+.mono/
+data_*/
+mono_crash.*.json
+
+# Export templates and binaries
+export/
+bin/
+*.pck
+*.apk
+*.aab
+*.exe
+*.zip
+
+# System & IDE ignores
+.DS_Store
+Thumbs.db
+*.tmp
+*.log
+.vscode/
+.idea/

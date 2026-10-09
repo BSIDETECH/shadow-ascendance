@@ -1,0 +1,113 @@
+{
+  "version": 1,
+  "skills": {
+    "godot-ability-system": {
+      "source": "thedivergentai/gd-agentic-skills",
+      "sourceType": "github",
+      "skillPath": "skills/godot-ability-system/SKILL.md",
+      "computedHash": "f94f4e221b4e6c354f49371a3ea6036f1b0a49b8ecc1c9c8c9636524334fe9e3"
+    },
+    "godot-ai-navigation": {
+      "source": "thedivergentai/gd-agentic-skills",
+      "sourceType": "github",
+      "skillPath": "skills/godot-ai-navigation/SKILL.md",
+      "computedHash": "a12a8a950ee8cd1b5d4349a8ec0c8812105327e13e9269c044c4b94b01c8c4e3"
+    },
+    "godot-audio-systems": {
+      "source": "thedivergentai/gd-agentic-skills",
+      "sourceType": "github",
+      "skillPath": "skills/godot-audio-systems/SKILL.md",
+      "computedHash": "82a9aa51c6df529e24759758b7242f215402f76fb863dd3dd7b2cfe77cac1b75"
+    },
+    "godot-characterbody-2d": {
+      "source": "thedivergentai/gd-agentic-skills",
+      "sourceType": "github",
+      "skillPath": "skills/godot-characterbody-2d/SKILL.md",
+      "computedHash": "fa9023ebe0c120a04472de3c78a4a0e3ceece04589d865b061e0bb131773e121"
+    },
+    "godot-combat-system": {
+      "source": "thedivergentai/gd-agentic-skills",
+      "sourceType": "github",
+      "skillPath": "skills/godot-combat-system/SKILL.md",
+      "computedHash": "ef918455debe0dcd692ddcfc74030ccc7557ef8bdfdc05324dd713a693a59d53"
+    },
+    "godot-dialogue-system": {
+      "source": "thedivergentai/gd-agentic-skills",
+      "sourceType": "github",
+      "skillPath": "skills/godot-dialogue-system/SKILL.md",
+      "computedHash": "3c8935619e01aefc732b107f3991e017021841e5751bca99c85a8576ed793dc6"
+    },
+    "godot-game-loop-waves": {
+      "source": "thedivergentai/gd-agentic-skills",
+      "sourceType": "github",
+      "skillPath": "skills/godot-game-loop-waves/SKILL.md",
+      "computedHash": "2d09a6265dab62f56ad0740a7c645bbba4f2d2681f43d666f989946db67fd26d"
+    },
+    "godot-gdscript-mastery": {
+      "source": "thedivergentai/gd-agentic-skills",
+      "sourceType": "github",
+      "skillPath": "skills/godot-gdscript-mastery/SKILL.md",
+      "computedHash": "d3ef93285ce1c0435d8887166a7a2dd83dff1e97654fafaaf4e73a5631918d9e"
+    },
+    "godot-genre-roguelike": {
+      "source": "thedivergentai/gd-agentic-skills",
+      "sourceType": "github",
+      "skillPath": "skills/godot-genre-roguelike/SKILL.md",
+      "computedHash": "5bbe860a5c39fba58ebe3d1e459b99b5893534da6f1676fa7b41ddc5008c4bb4"
+    },
+    "godot-inventory-system": {
+      "source": "thedivergentai/gd-agentic-skills",
+      "sourceType": "github",
+      "skillPath": "skills/godot-inventory-system/SKILL.md",
+      "computedHash": "f14bfae28c7db9aaf4110aa18fe369d5e0e0dcc01d812bf3a4cabe96c5325609"
+    },
+    "godot-master": {
+      "source": "thedivergentai/gd-agentic-skills",
+      "sourceType": "github",
+      "skillPath": "skills/godot-master/SKILL.md",
+      "computedHash": "6e9b4860af18f5d873e34af3bc5384ba3b5b238dc3145d61b781191d22fc2822"
+    },
+    "godot-particles": {
+      "source": "thedivergentai/gd-agentic-skills",
+      "sourceType": "github",
+      "skillPath": "skills/godot-particles/SKILL.md",
+      "computedHash": "9b6fd8cdb856874bf88746da79514a74d3b22480fce117f8d26578a269a46c71"
+    },
+    "godot-quest-system": {
+      "source": "thedivergentai/gd-agentic-skills",
+      "sourceType": "github",
+      "skillPath": "skills/godot-quest-system/SKILL.md",
+      "computedHash": "585a094262f98ea750185ea3b525bc607259dc85cc95afb4a1d68bb5ef0b1b19"
+    },
+    "godot-rpg-stats": {
+      "source": "thedivergentai/gd-agentic-skills",
+      "sourceType": "github",
+      "skillPath": "skills/godot-rpg-stats/SKILL.md",
+      "computedHash": "00b21adb610d08a80e38b8f0527bd0399f70a730722a4bd0e5efded6b05b4af4"
+    },
+    "godot-shaders-basics": {
+      "source": "thedivergentai/gd-agentic-skills",
+      "sourceType": "github",
+      "skillPath": "skills/godot-shaders-basics/SKILL.md",
+      "computedHash": "653cb019eb0f52e0280c71e0acfd0e585a0c2616251340babc7bfe4837afbdcc"
+    },
+    "godot-signal-architecture": {
+      "source": "thedivergentai/gd-agentic-skills",
+      "sourceType": "github",
+      "skillPath": "skills/godot-signal-architecture/SKILL.md",
+      "computedHash": "2fb8743748485c1182777c75870f980ab1828333651d9b437ce1bf3b851a9f41"
+    },
+    "godot-tweening": {
+      "source": "thedivergentai/gd-agentic-skills",
+      "sourceType": "github",
+      "skillPath": "skills/godot-tweening/SKILL.md",
+      "computedHash": "3b95458c3b6d48d08a2af3035965e687fc798ef1c400a62afea927136365837e"
+    },
+    "godot-ui-containers": {
+      "source": "thedivergentai/gd-agentic-skills",
+      "sourceType": "github",
+      "skillPath": "skills/godot-ui-containers/SKILL.md",
+      "computedHash": "e5bb74c23763a2b3a956e57cfc5659766ec4247c4f966bbfd7cde4c60a62d0e1"
+    }
+  }
+}

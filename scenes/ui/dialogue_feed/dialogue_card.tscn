@@ -1,0 +1,80 @@
+[gd_scene load_steps=3 format=3 uid="uid://c7card001"]
+
+[ext_resource type="Script" path="res://scripts/ui/dialogue_card.gd" id="1_card"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_card_bg"]
+bg_color = Color(0.06, 0.08, 0.12, 0.88)
+border_width_left = 2
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.2, 0.85, 0.4, 0.9)
+corner_radius_top_left = 4
+corner_radius_top_right = 4
+corner_radius_bottom_right = 4
+corner_radius_bottom_left = 4
+
+[node name="DialogueCard" type="PanelContainer"]
+custom_minimum_size = Vector2(248, 34)
+offset_right = 248.0
+offset_bottom = 34.0
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_card_bg")
+script = ExtResource("1_card")
+
+[node name="Margin" type="MarginContainer" parent="."]
+layout_mode = 2
+mouse_filter = 2
+theme_override_constants/margin_left = 6
+theme_override_constants/margin_top = 4
+theme_override_constants/margin_right = 6
+theme_override_constants/margin_bottom = 4
+
+[node name="HBox" type="HBoxContainer" parent="Margin"]
+layout_mode = 2
+mouse_filter = 2
+theme_override_constants/separation = 6
+
+[node name="Portrait" type="TextureRect" parent="Margin/HBox"]
+custom_minimum_size = Vector2(18, 18)
+layout_mode = 2
+size_flags_horizontal = 4
+size_flags_vertical = 4
+mouse_filter = 2
+expand_mode = 1
+stretch_mode = 5
+texture_filter = 0
+
+[node name="ContentVBox" type="VBoxContainer" parent="Margin/HBox"]
+layout_mode = 2
+size_flags_horizontal = 3
+mouse_filter = 2
+theme_override_constants/separation = 1
+
+[node name="HeaderHBox" type="HBoxContainer" parent="Margin/HBox/ContentVBox"]
+layout_mode = 2
+mouse_filter = 2
+
+[node name="SpeakerLabel" type="Label" parent="Margin/HBox/ContentVBox/HeaderHBox"]
+layout_mode = 2
+size_flags_horizontal = 3
+mouse_filter = 2
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_font_sizes/font_size = 10
+text = "Lyra"
+
+[node name="StatusBadge" type="Label" parent="Margin/HBox/ContentVBox/HeaderHBox"]
+layout_mode = 2
+mouse_filter = 2
+theme_override_colors/font_color = Color(0.22, 0.88, 0.42, 1)
+theme_override_font_sizes/font_size = 9
+text = "[OBEDECE]"
+horizontal_alignment = 2
+
+[node name="MessageLabel" type="Label" parent="Margin/HBox/ContentVBox"]
+layout_mode = 2
+mouse_filter = 2
+theme_override_colors/font_color = Color(0.9, 0.9, 0.92, 1)
+theme_override_font_sizes/font_size = 9
+text = "Entendido! Conjurando feitiços na área!"
+autowrap_mode = 2
