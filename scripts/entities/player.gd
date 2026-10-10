@@ -24,6 +24,15 @@ var fire_pulse_unlocked: bool = false
 var _fire_pulse_timer: float = 0.0
 var executioner_unlocked: bool = false
 var kill_counter: int = 0
+@export var weapon_unlocked: bool = false # Starts unarmed: single-target punch ("soquinho")
+
+# Geometries for Punch (unarmed) vs Shadow Blades (weapon unlocked)
+static var PUNCH_POLYGON := PackedVector2Array([
+	Vector2(4, -5), Vector2(18, -4), Vector2(22, 0), Vector2(18, 4), Vector2(4, 5)
+])
+static var WEAPON_POLYGON := PackedVector2Array([
+	Vector2(0, -16), Vector2(28, -22), Vector2(44, 0), Vector2(28, 22), Vector2(0, 16), Vector2(20, 0)
+])
 
 var _is_dashing: bool = false
 var _dash_timer: float = 0.0
@@ -54,12 +63,25 @@ func _ready() -> void:
 	
 	slash_hitbox.team_index = 0
 	slash_hitbox.damage_amount = base_damage
-	slash_hitbox.damage_type = DamageData.DamageType.DARK
+	slash_hitbox.damage_type = DamageData.DamageType.PHYSICAL if not weapon_unlocked else DamageData.DamageType.DARK
 	slash_hitbox.monitoring = false
 	slash_visual.visible = false
+	_apply_weapon_mode()
 	
 	EventBus.enemy_died.connect(_on_enemy_killed)
 	_update_magnet_radius()
+
+func unlock_weapon() -> void:
+	weapon_unlocked = true
+	_apply_weapon_mode()
+
+func _apply_weapon_mode() -> void:
+	if slash_collision != null:
+		slash_collision.polygon = WEAPON_POLYGON if weapon_unlocked else PUNCH_POLYGON
+	if slash_visual != null:
+		slash_visual.polygon = WEAPON_POLYGON if weapon_unlocked else PUNCH_POLYGON
+	if slash_hitbox != null:
+		slash_hitbox.damage_type = DamageData.DamageType.DARK if weapon_unlocked else DamageData.DamageType.PHYSICAL
 
 func _physics_process(delta: float) -> void:
 	_handle_timers(delta)
@@ -151,17 +173,28 @@ func _execute_shadow_slash() -> void:
 	slash_hitbox.monitoring = true
 	slash_visual.visible = true
 
-	# Slash crescent animation
-	slash_visual.scale = Vector2(0.6, 0.6)
-	slash_visual.modulate = Color(2.0, 0.3, 0.5, 1.0) if (executioner_unlocked and current_damage > base_damage * damage_mult) else Color(1.2, 0.4, 1.8, 1.0)
-	
-	var tween := create_tween()
-	tween.tween_property(slash_visual, "scale", Vector2(1.2, 1.2), 0.08)
-	tween.parallel().tween_property(slash_visual, "modulate:a", 0.0, 0.12)
-	tween.tween_callback(func():
-		slash_hitbox.monitoring = false
-		slash_visual.visible = false
-	)
+	if not weapon_unlocked:
+		# Unarmed Punch: Fast forward jab, small fist/impact burst
+		slash_visual.scale = Vector2(0.5, 0.5)
+		slash_visual.modulate = Color(1.5, 1.2, 0.8, 1.0) # White-golden punch flash
+		var tween := create_tween()
+		tween.tween_property(slash_visual, "scale", Vector2(1.1, 1.1), 0.05)
+		tween.parallel().tween_property(slash_visual, "modulate:a", 0.0, 0.08)
+		tween.tween_callback(func():
+			slash_hitbox.monitoring = false
+			slash_visual.visible = false
+		)
+	else:
+		# Weapon Unlocked: Wide crescent shadow blade slash
+		slash_visual.scale = Vector2(0.6, 0.6)
+		slash_visual.modulate = Color(2.0, 0.3, 0.5, 1.0) if (executioner_unlocked and current_damage > base_damage * damage_mult) else Color(1.2, 0.4, 1.8, 1.0)
+		var tween := create_tween()
+		tween.tween_property(slash_visual, "scale", Vector2(1.2, 1.2), 0.08)
+		tween.parallel().tween_property(slash_visual, "modulate:a", 0.0, 0.12)
+		tween.tween_callback(func():
+			slash_hitbox.monitoring = false
+			slash_visual.visible = false
+		)
 
 
 func _attract_nearby_gems() -> void:

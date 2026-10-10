@@ -14,10 +14,32 @@ var damage_type: int = DamageData.DamageType.PHYSICAL
 @export var custom_damage_data: DamageData = null
 @export var hit_source: Node2D = null
 
+@export var periodic_damage: bool = false
+@export var tick_interval: float = 0.5
+var _tick_timer: float = 0.0
+
 func _ready() -> void:
 	area_entered.connect(_on_area_entered)
 	monitoring = true
 	monitorable = true
+
+func _physics_process(delta: float) -> void:
+	if not periodic_damage or not monitoring:
+		return
+	_tick_timer -= delta
+	if _tick_timer <= 0.0:
+		_tick_timer = tick_interval
+		_apply_periodic_tick()
+
+func _apply_periodic_tick() -> void:
+	var overlapping := get_overlapping_areas()
+	for area in overlapping:
+		var hurtbox := area as HurtboxComponent
+		if hurtbox == null or hurtbox.team_index == team_index:
+			continue
+		var data := get_effective_damage_data(hurtbox.global_position)
+		hurtbox.receive_hit(data)
+		hit_landed.emit(hurtbox, data)
 
 func get_effective_damage_data(target_pos: Vector2) -> DamageData:
 	if custom_damage_data != null:

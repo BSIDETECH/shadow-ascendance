@@ -31,22 +31,90 @@ func _ready() -> void:
 		player.health_component.died.connect(_on_player_died)
 
 	_setup_party_roster()
+	_setup_victory_portal()
 
 	hud.update_xp(_current_xp, _next_level_xp, _current_level)
 	hud.update_health(player.health_component.current_health, player.health_component.max_health)
 	hud.update_kills(_total_kills)
 
+var victory_portal: Area2D = null
+
+func _setup_victory_portal() -> void:
+	if victory_portal == null:
+		victory_portal = Area2D.new()
+		victory_portal.name = "VictoryPortal"
+		victory_portal.collision_layer = 0
+		victory_portal.collision_mask = 2 # Player
+		var shape := CollisionShape2D.new()
+		var circle := CircleShape2D.new()
+		circle.radius = 28.0
+		shape.shape = circle
+		victory_portal.add_child(shape)
+
+		# Visual portal aura
+		var visual := Polygon2D.new()
+		visual.name = "PortalVisual"
+		visual.color = Color(0.3, 0.8, 1.0, 0.75)
+		var pts: PackedVector2Array = []
+		for p_idx in range(12):
+			var a := (float(p_idx) / 12.0) * TAU
+			pts.append(Vector2(cos(a) * 26.0, sin(a) * 26.0))
+		visual.polygon = pts
+		victory_portal.add_child(visual)
+
+		add_child(victory_portal)
+
+	victory_portal.visible = false
+	victory_portal.monitoring = false
+	if not victory_portal.body_entered.is_connected(_on_portal_entered):
+		victory_portal.body_entered.connect(_on_portal_entered)
+
+func _on_portal_entered(body: Node2D) -> void:
+	if body is Player or body.is_in_group("player"):
+		if victory_portal != null:
+			victory_portal.set_deferred("monitoring", false)
+		
+		# Record surviving allies
+		var tracker = get_tree().root.get_node_or_null("SilentAgencyTracker")
+		if tracker != null and tracker.has_method("record_ally_survived"):
+			var companions = get_tree().get_nodes_in_group("companions")
+			for comp in companions:
+				if is_instance_valid(comp) and not comp.get("is_dying"):
+					tracker.call("record_ally_survived")
+
+		var gm = get_tree().root.get_node_or_null("GameManager")
+		if gm != null and gm.has_method("trigger_ending"):
+			gm.call("trigger_ending", "GOOD_ENDING")
+		elif gm != null and gm.has_method("transition_to_hub"):
+			gm.call("transition_to_hub")
+
 func _setup_party_roster() -> void:
 	var gm = get_tree().root.get_node_or_null("GameManager")
-	if gm == null or not ("active_party_roster" in gm):
-		return
-
-	var roster: Array = gm.get("active_party_roster")
-	if roster.size() == 0:
-		return
+	var roster: Array = []
+	if gm != null and ("active_party_roster" in gm):
+		roster = gm.get("active_party_roster")
 
 	var spawn_offsets: Array[Vector2] = [Vector2(-35, 30), Vector2(35, 30), Vector2(0, 45)]
 	var tracker = get_tree().root.get_node_or_null("SilentAgencyTracker")
+
+	# If no roster configured from village hub (e.g. standalone arena test or direct run),
+	# spawn a default CompanionMage unless a solo run was explicitly designated.
+	if roster.size() == 0:
+		var scene_path = "res://scenes/entities/companion/companion_mage.tscn"
+		if not ResourceLoader.exists(scene_path):
+			scene_path = "res://scenes/entities/companion/companion.tscn"
+		var CompScene = load(scene_path)
+		if CompScene != null:
+			var default_comp = CompScene.instantiate()
+			default_comp.name = "Companion"
+			var base_pos: Vector2 = player.global_position if (player != null and is_instance_valid(player)) else Vector2(0, 0)
+			default_comp.global_position = base_pos + spawn_offsets[0]
+			add_child(default_comp)
+			if EventBus != null and default_comp.has_method("_on_leadership_order_issued"):
+				if not EventBus.leadership_order_issued.is_connected(Callable(default_comp, "_on_leadership_order_issued")):
+					EventBus.leadership_order_issued.connect(Callable(default_comp, "_on_leadership_order_issued"))
+		return
+
 	for i in range(mini(roster.size(), spawn_offsets.size())):
 		var merc_data: Dictionary = roster[i]
 		if tracker != null and tracker.has_method("record_ally_deployed"):
@@ -66,7 +134,7 @@ func _setup_party_roster() -> void:
 			comp_node = CompanionScene.instantiate()
 
 		if comp_node != null:
-			comp_node.name = "Companion_%d" % (i + 1)
+			comp_node.name = "Companion" if i == 0 else ("Companion_%d" % (i + 1))
 			var base_pos: Vector2 = player.global_position if (player != null and is_instance_valid(player)) else Vector2(0, 0)
 			comp_node.global_position = base_pos + spawn_offsets[i]
 			add_child(comp_node)
@@ -94,7 +162,7 @@ func _physics_process(delta: float) -> void:
 	if _spawn_timer <= 0.0:
 		_spawn_wave()
 		# Spawn interval tightens as time goes on (more aggressive pacing)
-		_spawn_timer = maxf(0.55, (spawn_interval * 0.75) - (_game_time * 0.01))
+		_spawn_timer = maxf(0.8, spawn_interval - (_game_time * 0.008))
 
 	# Spawn Demon Boss at 60 seconds (1 minuto de batalha)
 	if _game_time >= 60.0 and not _boss_spawned:
@@ -104,9 +172,15 @@ func _spawn_wave() -> void:
 	if enemy_scene == null or player == null or not is_instance_valid(player):
 		return
 
-	# Number of enemies per wave scales with time (increased density)
-	var count := 4 + int(_game_time / 14.0)
-	count = mini(count, 14)
+	# Performance guard: cap total active enemies on screen to avoid lag/freeze
+	var active_enemies := get_tree().get_nodes_in_group("enemies")
+	if active_enemies.size() >= 35:
+		return
+
+	# Number of enemies per wave scales with time:
+	# t=0: 2 enemies | t=25: 3 enemies | t=60: 5 enemies | t=180: max 8 enemies
+	var count := 2 + int(_game_time / 20.0)
+	count = mini(count, 8)
 
 	for i in range(count):
 		var enemy := enemy_scene.instantiate() as Enemy
@@ -159,7 +233,7 @@ func _on_xp_collected(amount: int) -> void:
 	if _current_xp >= _next_level_xp:
 		_current_xp -= _next_level_xp
 		_current_level += 1
-		_next_level_xp = int(float(_next_level_xp) * 1.35) + 4
+		_next_level_xp = int(float(_next_level_xp) * 1.5) + 6
 		
 		# Trigger Goddess Gacha Screen!
 		gacha_screen.open_gacha(_current_level)
@@ -185,7 +259,19 @@ func _on_boss_died(boss_name: String, _pos: Vector2) -> void:
 		if reward > 0 and gm.has_method("add_gold"):
 			gm.add_gold(reward)
 
-	# Quando o Boss morre, pausa a ação e abre a tela de Roubo de Alma do Chefe!
+	# Clean up leftover mobs
+	var mobs = get_tree().get_nodes_in_group("enemies")
+	for m in mobs:
+		if is_instance_valid(m) and m != self:
+			m.queue_free()
+
+	# Activate Victory Portal at arena center
+	if victory_portal != null:
+		victory_portal.visible = true
+		victory_portal.set_deferred("monitoring", true)
+		victory_portal.global_position = Vector2(0, 0)
+
+	# Quando o Boss morre, abre a tela de Roubo de Alma do Chefe
 	get_tree().create_timer(0.4).timeout.connect(func():
 		gacha_screen.open_boss_theft(boss_name)
 	)
@@ -232,6 +318,9 @@ func _buff_companion(prop_name: String, multiplier: float = 1.0, add_value: floa
 				target.set(prop_name, target.get(prop_name) + add_value)
 
 func _on_gacha_card_chosen(card: Dictionary) -> void:
+	if not player.weapon_unlocked:
+		player.unlock_weapon()
+
 	var id: String = card.get("id", "")
 	match id:
 		# Cartas R

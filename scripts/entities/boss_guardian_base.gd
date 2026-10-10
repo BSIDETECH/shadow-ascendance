@@ -122,6 +122,8 @@ func _setup_components() -> void:
 		hitbox_component.collision_mask = 66  # Player (2) | Companion (64)
 		hitbox_component.damage_amount = contact_damage
 		hitbox_component.team_index = 1
+		hitbox_component.periodic_damage = true
+		hitbox_component.tick_interval = 0.4
 		var hit_shape := CollisionShape2D.new()
 		var hit_circle := CircleShape2D.new()
 		hit_circle.radius = 14.0

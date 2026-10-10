@@ -37,6 +37,8 @@ func _ready() -> void:
 	hitbox_component.damage_amount = contact_damage
 	hitbox_component.damage_type = DamageData.DamageType.PHYSICAL
 	hitbox_component.team_index = 1 # Enemy team
+	hitbox_component.periodic_damage = true
+	hitbox_component.tick_interval = 0.4
 
 	hurtbox_component.team_index = 1
 	hurtbox_component.health_component = health_component
