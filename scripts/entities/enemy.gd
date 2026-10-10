@@ -1,7 +1,7 @@
 class_name Enemy
 extends CharacterBody2D
 
-enum EnemyType { SKELETON, SLIME, BAT, DEMON_BOSS }
+enum EnemyType { SKELETON, SLIME, BAT, DEMON_BOSS, RANGED }
 
 @export var enemy_type: EnemyType = EnemyType.SKELETON
 @export var base_speed: float = 70.0
@@ -90,6 +90,14 @@ func _setup_type_attributes() -> void:
 			sprite.texture = load("res://assets/kenney_tiny_dungeon/Tiles/tile_0108.png")
 			scale = Vector2(1.8, 1.8)
 			modulate = Color(1.0, 0.4, 0.4)
+		EnemyType.RANGED:
+			base_speed = 60.0
+			max_health = 22.0
+			contact_damage = 4.0
+			xp_reward = 1
+			sprite.texture = load("res://assets/kenney_tiny_dungeon/Tiles/tile_0088.png")
+			scale = Vector2.ONE
+			modulate = Color.WHITE
 
 	var tree := get_tree()
 	if tree != null and tree.root != null:
