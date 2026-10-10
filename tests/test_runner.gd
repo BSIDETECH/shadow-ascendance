@@ -28,6 +28,7 @@ func _start_runner() -> void:
 	await _run_m3()
 	await _run_m4()
 	await _run_m5()
+	await _run_relic_tests()
 
 	var elapsed_ms := Time.get_ticks_msec() - start_time
 	_print_summary(elapsed_ms)
@@ -131,6 +132,17 @@ func _run_m5() -> void:
 		await m5_suite.run_all(self)
 	else:
 		record_fail("M5 Silent Agency Suite", "run_all method missing on test_m5_silent_agency")
+
+func _run_relic_tests() -> void:
+	if not ResourceLoader.exists("res://tests/test_relic_system.gd"):
+		record_skip("Relic System Suite", "tests/test_relic_system.gd not found")
+		return
+	var RelicSuiteClass = load("res://tests/test_relic_system.gd")
+	var relic_suite = RelicSuiteClass.new()
+	if relic_suite.has_method("run_all"):
+		await relic_suite.run_all(self)
+	else:
+		record_fail("Relic System Suite", "run_all method missing on test_relic_system")
 
 func _print_summary(elapsed_ms: int) -> void:
 	print("\n" + "=".repeat(70))
