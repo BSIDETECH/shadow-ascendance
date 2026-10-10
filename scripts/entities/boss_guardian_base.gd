@@ -63,6 +63,16 @@ func _ready() -> void:
 	add_to_group("enemies")
 	add_to_group("bosses")
 
+	var tree := get_tree()
+	if tree != null and tree.root != null:
+		var gm = tree.root.get_node_or_null("GameManager")
+		if gm != null:
+			max_health *= gm.boss_health_mult
+			current_health = max_health
+			contact_damage *= gm.boss_damage_mult
+			base_speed *= 1.10
+			attack_cooldown = maxf(1.8, attack_cooldown * 0.85)
+
 	_setup_components()
 	set_leyline_mitigation(has_active_leylines)
 	_find_target()

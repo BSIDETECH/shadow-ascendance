@@ -141,10 +141,12 @@ func _spawn_mob_adds() -> void:
 	if _active_adds.size() >= max_adds_alive:
 		return
 
-	# Spawn 2 adds at arena flanks
+	# Spawn 4 adds at arena flanks and top/bottom
 	var spawn_points: Array[Vector2] = [
 		Vector2(-arena_width * 0.42, randf_range(-120, 120)),
-		Vector2(arena_width * 0.42, randf_range(-120, 120))
+		Vector2(arena_width * 0.42, randf_range(-120, 120)),
+		Vector2(randf_range(-180, 180), -arena_height * 0.38),
+		Vector2(randf_range(-180, 180), arena_height * 0.38)
 	]
 
 	for pos in spawn_points:

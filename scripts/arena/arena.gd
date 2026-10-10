@@ -52,8 +52,8 @@ func _physics_process(delta: float) -> void:
 
 	if _spawn_timer <= 0.0:
 		_spawn_wave()
-		# Spawn interval tightens as time goes on
-		_spawn_timer = maxf(0.8, spawn_interval - (_game_time * 0.008))
+		# Spawn interval tightens as time goes on (more aggressive pacing)
+		_spawn_timer = maxf(0.55, (spawn_interval * 0.75) - (_game_time * 0.01))
 
 	# Spawn Demon Boss at 60 seconds (1 minuto de batalha)
 	if _game_time >= 60.0 and not _boss_spawned:
@@ -63,9 +63,9 @@ func _spawn_wave() -> void:
 	if enemy_scene == null or player == null or not is_instance_valid(player):
 		return
 
-	# Number of enemies per wave scales with time
-	var count := 2 + int(_game_time / 20.0)
-	count = mini(count, 8)
+	# Number of enemies per wave scales with time (increased density)
+	var count := 4 + int(_game_time / 14.0)
+	count = mini(count, 14)
 
 	for i in range(count):
 		var enemy := enemy_scene.instantiate() as Enemy

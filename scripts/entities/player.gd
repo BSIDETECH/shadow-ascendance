@@ -7,8 +7,8 @@ signal dashed(direction: Vector2)
 @export var dash_speed: float = 380.0
 @export var dash_duration: float = 0.18
 @export var dash_cooldown: float = 0.75
-@export var attack_cooldown: float = 0.22
-@export var base_damage: float = 26.0
+@export var attack_cooldown: float = 0.28
+@export var base_damage: float = 22.0
 @export var can_attack: bool = true
 @export var combat_enabled: bool = true
 

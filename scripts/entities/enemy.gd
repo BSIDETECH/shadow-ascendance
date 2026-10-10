@@ -91,6 +91,17 @@ func _setup_type_attributes() -> void:
 			scale = Vector2(1.8, 1.8)
 			modulate = Color(1.0, 0.4, 0.4)
 
+	var tree := get_tree()
+	if tree != null and tree.root != null:
+		var gm = tree.root.get_node_or_null("GameManager")
+		if gm != null:
+			var hp_mult: float = gm.boss_health_mult if enemy_type == EnemyType.DEMON_BOSS else gm.enemy_health_mult
+			var dmg_mult: float = gm.boss_damage_mult if enemy_type == EnemyType.DEMON_BOSS else gm.enemy_damage_mult
+			var spd_mult: float = gm.enemy_speed_mult
+			max_health *= hp_mult
+			contact_damage *= dmg_mult
+			base_speed *= spd_mult
+
 	_current_speed = base_speed
 	if health_component != null:
 		health_component.max_health = max_health

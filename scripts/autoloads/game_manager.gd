@@ -21,6 +21,13 @@ var selected_quest_rank: String = "F"
 var total_completed_runs: int = 0
 var is_transitioning: bool = false
 
+# Difficulty Balancing
+var enemy_health_mult: float = 1.40
+var enemy_damage_mult: float = 1.30
+var enemy_speed_mult: float = 1.15
+var boss_health_mult: float = 1.40
+var boss_damage_mult: float = 1.30
+
 var _fade_layer: CanvasLayer = null
 var _fade_rect: ColorRect = null
 
