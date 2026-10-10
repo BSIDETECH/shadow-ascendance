@@ -20,6 +20,7 @@ var active_party_roster: Array[Dictionary] = []
 var selected_quest_rank: String = "F"
 var total_completed_runs: int = 0
 var is_transitioning: bool = false
+var player_gold: int = 0
 
 # Difficulty Balancing
 var enemy_health_mult: float = 1.40
@@ -204,3 +205,21 @@ func trigger_ending(ending_type: String = "", metrics: Dictionary = {}) -> void:
 	var ending_scene_path := "res://scenes/ui/ending_screen/ending_screen.tscn"
 	if ResourceLoader.exists(ending_scene_path):
 		change_scene_with_fade(ending_scene_path)
+
+# --- Economy System ---
+
+func add_gold(amount: int) -> void:
+	player_gold += amount
+	if EventBus.has_signal("gold_changed"):
+		EventBus.gold_changed.emit(player_gold)
+
+func spend_gold(amount: int) -> bool:
+	if player_gold >= amount:
+		player_gold -= amount
+		if EventBus.has_signal("gold_changed"):
+			EventBus.gold_changed.emit(player_gold)
+		return true
+	return false
+
+func get_gold() -> int:
+	return player_gold
