@@ -41,6 +41,7 @@ func _run_test_suite() -> void:
 	_test_part7_mage_refactor_and_elemental_spells()
 	_test_part8_enneagram_leadership_order_responses()
 	_test_part9_collision_layers_and_friendly_fire()
+	_test_part10_rogue_class()
 
 	var elapsed_ms := Time.get_ticks_msec() - start_ms
 
@@ -489,3 +490,38 @@ func _test_part9_collision_layers_and_friendly_fire() -> void:
 	assert_eq(archer_hurt.collision_mask, 16, "M2.90: Archer Hurtbox collision_mask is 16 (EnemyAttacks)")
 	assert_eq(archer_hurt.team_index, 0, "M2.91: Archer Hurtbox team_index is 0 [Allies]")
 	archer.free()
+
+
+# PART 10: ROGUE CLASS
+# ==============================================================================
+
+func _test_part10_rogue_class() -> void:
+	print("\n--- [PART 10: ROGUE CLASS] ---")
+
+	var RogueScript = load("res://scripts/entities/companion_rogue.gd")
+	assert_true(RogueScript != null, "M2.85: scripts/entities/companion_rogue.gd loads cleanly")
+
+	var rogue = RogueScript.new()
+	assert_true(rogue is CompanionBase, "M2.86: CompanionRogue inherits CompanionBase")
+	assert_eq(rogue.companion_name, "Silas", "M2.87: Rogue name is Silas")
+	assert_eq(rogue.max_health, 90.0, "M2.88: Rogue defines 90 HP")
+	assert_eq(rogue.move_speed, 150.0, "M2.89: Rogue defines 150 px/s move speed")
+
+	assert_eq(rogue.dagger_cooldown, 0.4, "M2.90: Rogue dagger cooldown is 0.4s")
+	assert_eq(rogue.dash_cooldown, 6.0, "M2.91: Rogue dash cooldown is 6.0s")
+	assert_eq(rogue.invis_cooldown, 12.0, "M2.92: Rogue invisibility cooldown is 12.0s")
+
+	root.add_child(rogue)
+
+	# Test invisibility initialization
+	assert_false(rogue._is_invisible, "M2.93: Rogue starts visible")
+	rogue._activate_invisibility()
+	assert_true(rogue._is_invisible, "M2.94: Rogue can become invisible")
+
+	# Ensure Enneagram is 7 (ENTHUSIAST)
+	assert_true(rogue.enneagram_profile != null, "M2.95: Rogue has Enneagram profile")
+	assert_eq(rogue.enneagram_profile.enneagram_type, EnneagramData.Type.ENTHUSIAST, "M2.96: Rogue is Enneagram Type 7 (ENTHUSIAST)")
+
+	print("Part 10 (Rogue Class) - PASS")
+
+	rogue.queue_free()
