@@ -14,7 +14,6 @@ var _total_kills: int = 0
 var _boss_spawned: bool = false
 
 @onready var player: Player = $Player
-@onready var companion: Companion = $Companion
 @onready var hud: GameHUD = $HUD
 @onready var gacha_screen: GachaScreen = $GachaScreen
 
@@ -31,21 +30,60 @@ func _ready() -> void:
 	if player != null and is_instance_valid(player):
 		player.health_component.died.connect(_on_player_died)
 
+	_setup_party_roster()
+
 	hud.update_xp(_current_xp, _next_level_xp, _current_level)
 	hud.update_health(player.health_component.current_health, player.health_component.max_health)
 	hud.update_kills(_total_kills)
+
+func _setup_party_roster() -> void:
+	var gm = get_tree().root.get_node_or_null("GameManager")
+	if gm == null or not ("active_party_roster" in gm):
+		return
+
+	var roster: Array = gm.get("active_party_roster")
+	if roster.size() == 0:
+		return
+
+	var spawn_offsets: Array[Vector2] = [Vector2(-35, 30), Vector2(35, 30), Vector2(0, 45)]
+	var tracker = get_tree().root.get_node_or_null("SilentAgencyTracker")
+	for i in range(mini(roster.size(), spawn_offsets.size())):
+		var merc_data: Dictionary = roster[i]
+		if tracker != null and tracker.has_method("record_ally_deployed"):
+			tracker.call("record_ally_deployed", merc_data)
+		var merc_class: String = merc_data.get("class", "mage")
+		var comp_node = null
+
+		var scene_path = "res://scenes/entities/companion/companion_" + merc_class.to_lower() + ".tscn"
+		if not ResourceLoader.exists(scene_path):
+			scene_path = "res://scenes/entities/companion/companion.tscn"
+
+		var CompanionScene = load(scene_path)
+		if CompanionScene != null:
+			comp_node = CompanionScene.instantiate()
+
+		if comp_node != null:
+			comp_node.name = "Companion_%d" % (i + 1)
+			var base_pos: Vector2 = player.global_position if (player != null and is_instance_valid(player)) else Vector2(0, 0)
+			comp_node.global_position = base_pos + spawn_offsets[i]
+			add_child(comp_node)
+			if EventBus != null and comp_node.has_method("_on_leadership_order_issued"):
+				if not EventBus.leadership_order_issued.is_connected(Callable(comp_node, "_on_leadership_order_issued")):
+					EventBus.leadership_order_issued.connect(Callable(comp_node, "_on_leadership_order_issued"))
 
 func _physics_process(delta: float) -> void:
 	if _is_game_over:
 		return
 
-	# Fail-safe arena boundary clamp for player and companion
+	# Fail-safe arena boundary clamp for player and companions
 	if player != null and is_instance_valid(player):
 		player.global_position.x = clampf(player.global_position.x, -586.0, 586.0)
 		player.global_position.y = clampf(player.global_position.y, -386.0, 386.0)
-	if companion != null and is_instance_valid(companion):
-		companion.global_position.x = clampf(companion.global_position.x, -586.0, 586.0)
-		companion.global_position.y = clampf(companion.global_position.y, -386.0, 386.0)
+	var group_allies := get_tree().get_nodes_in_group("companions")
+	for ally in group_allies:
+		if ally != null and is_instance_valid(ally):
+			ally.global_position.x = clampf(ally.global_position.x, -586.0, 586.0)
+			ally.global_position.y = clampf(ally.global_position.y, -386.0, 386.0)
 
 	_game_time += delta
 	_spawn_timer -= delta
@@ -163,8 +201,6 @@ func _show_game_over() -> void:
 func _buff_companion(prop_name: String, multiplier: float = 1.0, add_value: float = 0.0) -> void:
 	# Coleta referências válidas e vivas de companheiros para aplicar melhorias com segurança
 	var targets: Array = []
-	if companion != null and is_instance_valid(companion):
-		targets.append(companion)
 
 	var group_allies := get_tree().get_nodes_in_group("companions")
 	for ally in group_allies:

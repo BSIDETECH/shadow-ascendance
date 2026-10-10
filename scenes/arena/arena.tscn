@@ -7,7 +7,6 @@
 [ext_resource type="Texture2D" path="res://assets/kenney_tiny_dungeon/Tiles/tile_0131.png" id="5_torch"]
 [ext_resource type="Texture2D" path="res://assets/kenney_tiny_dungeon/Tiles/tile_0055.png" id="6_brazier"]
 [ext_resource type="PackedScene" path="res://scenes/entities/player/player.tscn" id="7_player"]
-[ext_resource type="PackedScene" path="res://scenes/entities/companion/companion.tscn" id="8_comp"]
 [ext_resource type="PackedScene" path="res://scenes/ui/hud/hud.tscn" id="9_hud"]
 [ext_resource type="PackedScene" path="res://scenes/ui/gacha_screen/gacha_screen.tscn" id="10_gacha"]
 
@@ -314,8 +313,6 @@ limit_bottom = 400
 position_smoothing_enabled = true
 position_smoothing_speed = 8.0
 
-[node name="Companion" parent="." instance=ExtResource("8_comp")]
-position = Vector2(35, 20)
 
 [node name="HUD" parent="." instance=ExtResource("9_hud")]
 
