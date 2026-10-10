@@ -29,6 +29,7 @@ func _start_runner() -> void:
 	await _run_m4()
 	await _run_m5()
 	await _run_relic_tests()
+	await _run_economy_tests()
 
 	var elapsed_ms := Time.get_ticks_msec() - start_time
 	_print_summary(elapsed_ms)
@@ -143,6 +144,17 @@ func _run_relic_tests() -> void:
 		await relic_suite.run_all(self)
 	else:
 		record_fail("Relic System Suite", "run_all method missing on test_relic_system")
+
+func _run_economy_tests() -> void:
+	if not ResourceLoader.exists("res://tests/test_economy_system.gd"):
+		record_skip("Economy System Suite", "tests/test_economy_system.gd not found")
+		return
+	var EconomySuiteClass = load("res://tests/test_economy_system.gd")
+	var economy_suite = EconomySuiteClass.new()
+	if economy_suite.has_method("run_all"):
+		await economy_suite.run_all(self)
+	else:
+		record_fail("Economy System Suite", "run_all method missing on test_economy_system")
 
 func _print_summary(elapsed_ms: int) -> void:
 	print("\n" + "=".repeat(70))

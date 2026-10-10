@@ -51,10 +51,13 @@ func _setup_party_roster() -> void:
 		var merc_data: Dictionary = roster[i]
 		if tracker != null and tracker.has_method("record_ally_deployed"):
 			tracker.call("record_ally_deployed", merc_data)
-		var merc_class: String = merc_data.get("class", "mage")
+		var merc_class: String = merc_data.get("class_type", merc_data.get("class", "mage"))
 		var comp_node = null
 
 		var scene_path = "res://scenes/entities/companion/companion_" + merc_class.to_lower() + ".tscn"
+		if merc_class.to_lower() == "rogue":
+			scene_path = "res://scenes/entities/companion/companion_rogue.tscn"
+
 		if not ResourceLoader.exists(scene_path):
 			scene_path = "res://scenes/entities/companion/companion.tscn"
 
@@ -168,6 +171,20 @@ func _on_enemy_died(_pos: Vector2, _xp: int) -> void:
 	hud.update_kills(_total_kills)
 
 func _on_boss_died(boss_name: String, _pos: Vector2) -> void:
+	var gm = get_tree().root.get_node_or_null("GameManager")
+	if gm != null:
+		var rank = gm.get("selected_quest_rank")
+		if rank == null and gm.has_method("get_selected_quest_rank"):
+			rank = gm.get_selected_quest_rank()
+
+		var reward = 0
+		if rank == "F": reward = 100
+		elif rank == "E": reward = 350
+		elif rank == "D": reward = 800
+
+		if reward > 0 and gm.has_method("add_gold"):
+			gm.add_gold(reward)
+
 	# Quando o Boss morre, pausa a ação e abre a tela de Roubo de Alma do Chefe!
 	get_tree().create_timer(0.4).timeout.connect(func():
 		gacha_screen.open_boss_theft(boss_name)

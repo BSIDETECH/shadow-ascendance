@@ -51,6 +51,18 @@ const MERCENARY_CANDIDATES: Array[Dictionary] = [
 		"role_desc": "Conjuradora em Área (Feitiços de Fogo e Gelo, Dano Elemental Contínuo)",
 		"icon_tile": "tile_0085.png",
 		"cost": 140
+	},
+	{
+		"id": "rogue_silas",
+		"name": "Silas",
+		"class_name": "Ladino",
+		"class_type": "rogue",
+		"enneagram_type": 7,
+		"enneagram_name": "Tipo 7 (O Entusiasta)",
+		"quote": "Adrenalina é meu combustível! Se o plano for ficar parado tomando pancada, nem me chame.",
+		"role_desc": "Combatente Ágil (90 HP, 150 px/s, Ataque com Adagas, Dash com Dano & Furtividade)",
+		"icon_tile": "tile_0088.png",
+		"cost": 130
 	}
 ]
 
@@ -210,6 +222,12 @@ func hire_candidate(candidate_id: String) -> bool:
 			if status_label != null:
 				status_label.text = "Grupo cheio! O limite é de 3 companheiros."
 			return false
+
+		if gm.has_method("spend_gold"):
+			if not gm.spend_gold(candidate.get("cost", 100)):
+				if status_label != null:
+					status_label.text = "Ouro insuficiente!"
+				return false
 
 		if gm.has_method("add_to_party_roster"):
 			var success: bool = gm.add_to_party_roster(candidate)

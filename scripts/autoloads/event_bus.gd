@@ -22,6 +22,7 @@ signal leadership_order_failed(reason: String)
 signal companion_dialogue_emitted(speaker_name: String, text: String, color: Color)
 signal companion_rescued(companion: Node)
 signal ally_died(ally: Node)
+signal gold_changed(new_gold: int)
 
 func emit_boss_died(boss_name: String, pos: Vector2) -> void:
 	boss_died.emit(boss_name, pos)

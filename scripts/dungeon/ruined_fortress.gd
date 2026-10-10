@@ -112,6 +112,10 @@ func _setup_party_roster() -> void:
 				var ArcherClass = load("res://scripts/entities/companion_archer.gd")
 				if ArcherClass != null:
 					comp_node = ArcherClass.new()
+			"rogue":
+				var RogueClass = load("res://scripts/entities/companion_rogue.gd")
+				if RogueClass != null:
+					comp_node = RogueClass.new()
 			_:
 				var MageClass = load("res://scripts/entities/companion_mage.gd")
 				if MageClass != null:
@@ -206,8 +210,23 @@ func _on_portal_entered(body: Node2D) -> void:
 				if is_instance_valid(comp) and not comp.get("is_dying"):
 					tracker.call("record_ally_survived")
 
+
 		var gm = get_tree().root.get_node_or_null("GameManager")
+		if gm != null:
+			var rank = gm.get("selected_quest_rank")
+			if rank == null and gm.has_method("get_selected_quest_rank"):
+				rank = gm.get_selected_quest_rank()
+
+			var reward = 0
+			if rank == "F": reward = 100
+			elif rank == "E": reward = 350
+			elif rank == "D": reward = 800
+
+			if reward > 0 and gm.has_method("add_gold"):
+				gm.add_gold(reward)
+
 		if gm != null and gm.has_method("trigger_ending"):
+
 			gm.call("trigger_ending")
 		elif gm != null and gm.has_method("transition_to_hub"):
 			gm.call("transition_to_hub")
