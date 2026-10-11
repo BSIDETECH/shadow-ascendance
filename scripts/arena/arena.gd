@@ -97,22 +97,8 @@ func _setup_party_roster() -> void:
 	var spawn_offsets: Array[Vector2] = [Vector2(-35, 30), Vector2(35, 30), Vector2(0, 45)]
 	var tracker = get_tree().root.get_node_or_null("SilentAgencyTracker")
 
-	# If no roster configured from village hub (e.g. standalone arena test or direct run),
-	# spawn a default CompanionMage unless a solo run was explicitly designated.
+	# If no roster configured from village hub, it's a true solo run. No default companions.
 	if roster.size() == 0:
-		var scene_path = "res://scenes/entities/companion/companion_mage.tscn"
-		if not ResourceLoader.exists(scene_path):
-			scene_path = "res://scenes/entities/companion/companion.tscn"
-		var CompScene = load(scene_path)
-		if CompScene != null:
-			var default_comp = CompScene.instantiate()
-			default_comp.name = "Companion"
-			var base_pos: Vector2 = player.global_position if (player != null and is_instance_valid(player)) else Vector2(0, 0)
-			default_comp.global_position = base_pos + spawn_offsets[0]
-			add_child(default_comp)
-			if EventBus != null and default_comp.has_method("_on_leadership_order_issued"):
-				if not EventBus.leadership_order_issued.is_connected(Callable(default_comp, "_on_leadership_order_issued")):
-					EventBus.leadership_order_issued.connect(Callable(default_comp, "_on_leadership_order_issued"))
 		return
 
 	for i in range(mini(roster.size(), spawn_offsets.size())):
