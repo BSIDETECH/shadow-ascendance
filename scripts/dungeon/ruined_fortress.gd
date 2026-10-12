@@ -22,6 +22,7 @@ var _add_timer: float = 4.0
 var _active_adds: Array[Node] = []
 var _monoliths_destroyed_count: int = 0
 var _boss_is_defeated: bool = false
+var _is_game_over: bool = false
 
 @onready var monolith_left: Node = $MonolithLeft if has_node("MonolithLeft") else null
 @onready var monolith_right: Node = $MonolithRight if has_node("MonolithRight") else null
@@ -37,6 +38,11 @@ func _ready() -> void:
 	_setup_boss()
 	_setup_victory_portal()
 	_setup_party_roster()
+
+	if player != null:
+		var player_health = player.get_node_or_null("HealthComponent")
+		if player_health != null and not player_health.died.is_connected(_on_player_died):
+			player_health.died.connect(_on_player_died)
 
 	var eb := get_tree().root.get_node_or_null("EventBus")
 	if eb != null and not eb.boss_died.is_connected(_on_boss_died):
@@ -128,7 +134,7 @@ func _setup_party_roster() -> void:
 			add_child(comp_node)
 
 func _physics_process(delta: float) -> void:
-	if _boss_is_defeated:
+	if _boss_is_defeated or _is_game_over:
 		return
 
 	_add_timer -= delta
@@ -230,3 +236,27 @@ func _on_portal_entered(body: Node2D) -> void:
 			gm.call("trigger_ending")
 		elif gm != null and gm.has_method("transition_to_hub"):
 			gm.call("transition_to_hub")
+
+func _on_player_died() -> void:
+	if _is_game_over:
+		return
+	_is_game_over = true
+
+	get_tree().create_timer(1.0).timeout.connect(func():
+		_show_game_over()
+	)
+
+func _show_game_over() -> void:
+	var ending_scene: PackedScene = load("res://scenes/ui/ending_screen/ending_screen.tscn")
+	if ending_scene != null:
+		var ending_node = ending_scene.instantiate()
+		add_child(ending_node)
+		if ending_node.has_method("display_ending"):
+			ending_node.display_ending("BAD_ENDING", {
+				"allies_survived": 0,
+				"rescues_performed": 0,
+				"allies_fallen": 1,
+				"reckless_orders_issued": 0,
+				"abandonment_ticks": 0,
+				"agency_score": -35
+			})
