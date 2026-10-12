@@ -64,7 +64,7 @@ func take_damage(data: DamageData) -> void:
 	if current_health <= 0.0:
 		_on_death()
 	else:
-		if i_frame_duration > 0.0:
+		if i_frame_duration > 0.0 and damage_amount > 0.0:
 			_i_frame_timer = i_frame_duration
 			invincibility_started.emit()
 
