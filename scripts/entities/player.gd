@@ -73,6 +73,7 @@ func _ready() -> void:
 	health_component.max_health = 100.0
 	health_component.current_health = 100.0
 	health_component.health_changed.connect(_on_health_changed)
+	health_component.shield_changed.connect(_on_shield_changed)
 	health_component.died.connect(_on_died)
 	
 	hurtbox_component.team_index = 0
@@ -225,6 +226,9 @@ func _spawn_shadow_ghost() -> void:
 	tween.tween_callback(ghost.queue_free)
 
 func _handle_combat() -> void:
+	if Input.is_action_just_pressed("ui_focus_next"): # Using TAB or similar testing key
+		health_component.apply_shield(100.0, 10.0)
+
 	if not can_attack or not combat_enabled:
 		return
 	if Input.is_action_pressed("attack") and _attack_timer <= 0.0:
@@ -417,6 +421,13 @@ func _on_health_changed(current: float, max_hp: float) -> void:
 				for ally in group_allies:
 					if ally != null and is_instance_valid(ally) and "cast_cooldown" in ally:
 						ally.cast_cooldown /= 0.5
+
+func _on_shield_changed(current: float, max_shield: float) -> void:
+	EventBus.emit_player_shield_changed(current, max_shield)
+	if current > 0:
+		sprite.modulate = Color(0.5, 0.8, 1.0, 1.0)
+	else:
+		sprite.modulate = Color(1.0, 1.0, 1.0, 1.0)
 
 var is_dead: bool = false
 
