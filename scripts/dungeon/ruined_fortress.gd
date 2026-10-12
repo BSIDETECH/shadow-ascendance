@@ -258,5 +258,6 @@ func _show_game_over() -> void:
 				"allies_fallen": 1,
 				"reckless_orders_issued": 0,
 				"abandonment_ticks": 0,
+				"monsters_defeated": 0,
 				"agency_score": -35
 			})
