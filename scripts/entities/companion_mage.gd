@@ -96,12 +96,30 @@ func _cast_spell() -> void:
 			tween.tween_property(sprite, "scale", Vector2.ONE, 0.08)
 
 func _has_enemy_closer_than(dist: float) -> bool:
-	var tree := get_tree()
-	if tree == null:
+	if not is_inside_tree():
 		return false
-	var enemies := tree.get_nodes_in_group("enemies")
-	for e in enemies:
-		if e is Node2D and is_instance_valid(e):
-			if global_position.distance_to((e as Node2D).global_position) <= dist:
-				return true
+
+	var world := get_world_2d()
+	if world == null:
+		return false
+
+	var space_state := world.direct_space_state
+	if space_state == null:
+		return false
+
+	var shape := CircleShape2D.new()
+	shape.radius = dist
+
+	var query := PhysicsShapeQueryParameters2D.new()
+	query.shape = shape
+	query.transform = Transform2D(0, global_position)
+	query.collide_with_areas = true
+	query.collide_with_bodies = true
+
+	var results := space_state.intersect_shape(query, 32)
+	for res in results:
+		var col := res.collider as Node
+		if col != null and col.is_in_group("enemies"):
+			return true
+
 	return false
