@@ -30,6 +30,7 @@ func _start_runner() -> void:
 	await _run_m5()
 	await _run_relic_tests()
 	await _run_economy_tests()
+	await _run_dialogue_card_tests()
 
 	var elapsed_ms := Time.get_ticks_msec() - start_time
 	_print_summary(elapsed_ms)
@@ -265,3 +266,14 @@ func wait_frames(count: int = 1) -> void:
 func wait_physics_frames(count: int = 1) -> void:
 	for i in range(count):
 		await physics_frame
+
+func _run_dialogue_card_tests() -> void:
+	if not ResourceLoader.exists("res://tests/test_dialogue_card.gd"):
+		record_skip("Dialogue Card Suite", "tests/test_dialogue_card.gd not found")
+		return
+	var DialogueCardClass = load("res://tests/test_dialogue_card.gd")
+	var suite = DialogueCardClass.new()
+	if suite.has_method("run_all"):
+		await suite.run_all(self)
+	else:
+		record_fail("Dialogue Card Suite", "run_all method missing on test_dialogue_card")
