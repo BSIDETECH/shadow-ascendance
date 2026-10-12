@@ -39,22 +39,42 @@ func _explode() -> void:
 
 	# Deal AoE damage to all enemies within radius
 	var space := get_world_2d().direct_space_state
-	var enemies := get_tree().get_nodes_in_group("enemies")
-	for e in enemies:
-		if e is Node2D and is_instance_valid(e):
-			var dist := global_position.distance_to((e as Node2D).global_position)
-			if dist <= aoe_radius:
-				var hurtbox := (e as Node2D).get_node_or_null("HurtboxComponent") as HurtboxComponent
-				if hurtbox != null:
-					var kb_dir := ((e as Node2D).global_position - global_position).normalized()
-					var data := DamageData.new(
-						damage,
-						DamageData.DamageType.FIRE,
-						90.0,
-						kb_dir,
-						self
-					)
-					hurtbox.receive_hit(data)
+	var shape := CircleShape2D.new()
+	shape.radius = aoe_radius
+
+	var query := PhysicsShapeQueryParameters2D.new()
+	query.shape = shape
+	query.transform = Transform2D(0, global_position)
+	# collision_mask 4 is set in _ready(), but to be safe and agnostic, we don't strictly constrain the mask
+	query.collide_with_areas = true
+	query.collide_with_bodies = true
+
+	var results := space.intersect_shape(query, 256)
+	var processed_enemies := {}
+
+	for res in results:
+		var collider = res.collider
+		var target: Node2D = null
+		var hurtbox: HurtboxComponent = null
+
+		if collider is HurtboxComponent:
+			hurtbox = collider as HurtboxComponent
+			target = hurtbox.owner if hurtbox.owner is Node2D else hurtbox.get_parent() as Node2D
+		elif collider is Node2D and collider.is_in_group("enemies"):
+			target = collider as Node2D
+			hurtbox = target.get_node_or_null("HurtboxComponent") as HurtboxComponent
+
+		if target != null and hurtbox != null and target.is_in_group("enemies") and not processed_enemies.has(target):
+			processed_enemies[target] = true
+			var kb_dir := (target.global_position - global_position).normalized()
+			var data := DamageData.new(
+				damage,
+				DamageData.DamageType.FIRE,
+				90.0,
+				kb_dir,
+				self
+			)
+			hurtbox.receive_hit(data)
 
 	# Explosion visual pop
 	var tween := create_tween()
