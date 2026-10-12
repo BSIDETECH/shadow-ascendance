@@ -11,9 +11,11 @@ extends Node2D
 @onready var player: Player = $Player
 @onready var elena: Node2D = $Elena
 @onready var barnaby: Node2D = $Barnaby
+@onready var blacksmith: Node2D = $Blacksmith
 @onready var madre_selene: Node2D = $MadreSelene
 @onready var merchant: Node2D = $Merchant
 @onready var quest_board_modal: Control = $UI/QuestBoardModal
+@onready var armory_modal: Control = $UI/ArmoryModal
 @onready var tavern_recruit_modal: Control = $UI/TavernRecruitModal
 @onready var shop_modal: Control = $UI/ShopModal
 @onready var hub_hud: Control = $UI/HubHUD
@@ -57,11 +59,15 @@ func _wire_npc_modals() -> void:
 		elena.quest_board_modal = quest_board_modal
 	if barnaby != null and tavern_recruit_modal != null:
 		barnaby.tavern_recruit_modal = tavern_recruit_modal
+	if blacksmith != null and armory_modal != null:
+		blacksmith.armory_modal = armory_modal
 	if bottom_dialogue_box != null:
 		if elena != null:
 			elena.dialogue_box = bottom_dialogue_box
 		if barnaby != null:
 			barnaby.dialogue_box = bottom_dialogue_box
+		if blacksmith != null:
+			blacksmith.dialogue_box = bottom_dialogue_box
 		if madre_selene != null:
 			madre_selene.dialogue_box = bottom_dialogue_box
 		if merchant != null:
@@ -81,12 +87,15 @@ func _wire_modal_hud_toggle() -> void:
 		shop_modal.visibility_changed.connect(_update_hub_hud_visibility)
 	if merchant != null and shop_modal != null:
 		merchant.shop_modal = shop_modal
+	if armory_modal != null:
+		armory_modal.visibility_changed.connect(_update_hub_hud_visibility)
 	_update_hub_hud_visibility()
 
 func _update_hub_hud_visibility() -> void:
 	if hub_hud == null:
 		return
 	var modal_open: bool = (quest_board_modal != null and quest_board_modal.visible) or (tavern_recruit_modal != null and tavern_recruit_modal.visible) or (shop_modal != null and shop_modal.visible)
+	var modal_open: bool = (quest_board_modal != null and quest_board_modal.visible) or (tavern_recruit_modal != null and tavern_recruit_modal.visible) or (armory_modal != null and armory_modal.visible)
 	hub_hud.visible = not modal_open
 
 func is_non_combat_zone() -> bool:
