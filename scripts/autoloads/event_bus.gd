@@ -14,6 +14,7 @@ signal gacha_card_selected(card: Resource)
 signal wave_started(wave_number: int)
 signal wave_completed(wave_number: int)
 signal player_health_changed(current: float, max_health: float)
+signal player_shield_changed(current: float, max_shield: float)
 signal player_dashed(direction: Vector2)
 
 # Leadership & Companion Signals (M1 & M5)

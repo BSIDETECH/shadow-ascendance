@@ -1,6 +1,7 @@
 class_name GameHUD
 extends CanvasLayer
 
+@onready var hp_container: HBoxContainer = $Control/Margin/VBox/HPContainer
 @onready var hp_bar: ProgressBar = $Control/Margin/VBox/HPContainer/HPBar
 @onready var hp_label: Label = $Control/Margin/VBox/HPContainer/HPLabel
 @onready var xp_bar: ProgressBar = $Control/Margin/VBox/XPContainer/XPBar
@@ -56,7 +57,58 @@ func _ready() -> void:
 			eb.gold_changed.connect(_on_gold_changed)
 
 	_setup_gold_hud()
+	_setup_potions_hud()
 	update_leadership_charges(3, 3)
+
+var health_potions_label: Label = null
+var shield_potions_label: Label = null
+var shield_label: Label = null
+
+func _setup_potions_hud() -> void:
+	if hp_container == null:
+		return
+
+	health_potions_label = Label.new()
+	health_potions_label.add_theme_font_size_override("font_size", 10)
+	health_potions_label.add_theme_color_override("font_color", Color(1.0, 0.4, 0.4))
+
+	shield_potions_label = Label.new()
+	shield_potions_label.add_theme_font_size_override("font_size", 10)
+	shield_potions_label.add_theme_color_override("font_color", Color(0.4, 0.6, 1.0))
+
+	shield_label = Label.new()
+	shield_label.add_theme_font_size_override("font_size", 12)
+	shield_label.add_theme_color_override("font_color", Color(0.2, 0.8, 1.0))
+	shield_label.text = ""
+
+	var vbox = VBoxContainer.new()
+	vbox.add_child(health_potions_label)
+	vbox.add_child(shield_potions_label)
+	hp_container.get_parent().add_child(vbox)
+	hp_container.get_parent().add_child(shield_label)
+
+	_on_potions_changed(GameManager.health_potions, GameManager.shield_potions)
+
+	var eb = _get_event_bus()
+	if eb and eb.has_signal("player_shield_changed"):
+		eb.player_shield_changed.connect(_on_shield_changed)
+
+	if GameManager.has_signal("potions_changed"):
+		GameManager.potions_changed.connect(_on_potions_changed)
+
+func _on_potions_changed(health_count: int, shield_count: int) -> void:
+	if health_potions_label:
+		health_potions_label.text = "[1] Poções de Vida: " + str(health_count)
+	if shield_potions_label:
+		shield_potions_label.text = "[2] Poções de Escudo: " + str(shield_count)
+
+func _on_shield_changed(current: float, max_shield: float) -> void:
+	if shield_label:
+		if current > 0.0:
+			shield_label.text = "🛡️ Escudo: " + str(int(current))
+		else:
+			shield_label.text = ""
+
 
 func _setup_gold_hud() -> void:
 	if kills_label != null and kills_label.get_parent() != null:

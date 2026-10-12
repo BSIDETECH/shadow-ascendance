@@ -12,8 +12,10 @@ extends Node2D
 @onready var elena: Node2D = $Elena
 @onready var barnaby: Node2D = $Barnaby
 @onready var madre_selene: Node2D = $MadreSelene
+@onready var merchant: Node2D = $Merchant
 @onready var quest_board_modal: Control = $UI/QuestBoardModal
 @onready var tavern_recruit_modal: Control = $UI/TavernRecruitModal
+@onready var shop_modal: Control = $UI/ShopModal
 @onready var hub_hud: Control = $UI/HubHUD
 @onready var bottom_dialogue_box: CanvasLayer = $UI/BottomDialogueBox
 @onready var instruction_label: Label = $UI/HubHUD/InstructionLabel
@@ -62,6 +64,8 @@ func _wire_npc_modals() -> void:
 			barnaby.dialogue_box = bottom_dialogue_box
 		if madre_selene != null:
 			madre_selene.dialogue_box = bottom_dialogue_box
+		if merchant != null:
+			merchant.dialogue_box = bottom_dialogue_box
 		bottom_dialogue_box.visibility_changed.connect(_on_dialogue_visibility_changed)
 
 func _on_dialogue_visibility_changed() -> void:
@@ -73,12 +77,16 @@ func _wire_modal_hud_toggle() -> void:
 		quest_board_modal.visibility_changed.connect(_update_hub_hud_visibility)
 	if tavern_recruit_modal != null:
 		tavern_recruit_modal.visibility_changed.connect(_update_hub_hud_visibility)
+	if shop_modal != null:
+		shop_modal.visibility_changed.connect(_update_hub_hud_visibility)
+	if merchant != null and shop_modal != null:
+		merchant.shop_modal = shop_modal
 	_update_hub_hud_visibility()
 
 func _update_hub_hud_visibility() -> void:
 	if hub_hud == null:
 		return
-	var modal_open: bool = (quest_board_modal != null and quest_board_modal.visible) or (tavern_recruit_modal != null and tavern_recruit_modal.visible)
+	var modal_open: bool = (quest_board_modal != null and quest_board_modal.visible) or (tavern_recruit_modal != null and tavern_recruit_modal.visible) or (shop_modal != null and shop_modal.visible)
 	hub_hud.visible = not modal_open
 
 func is_non_combat_zone() -> bool:

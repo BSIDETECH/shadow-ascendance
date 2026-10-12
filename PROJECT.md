@@ -63,3 +63,4 @@
 - `scenes/hub/npc_barnaby.tscn` & `scripts/hub/npc_barnaby.gd`
 - `scenes/arena/arena.tscn` & `scripts/arena/arena.gd`
 - `tests/test_ux_refactor_suite.gd`
+- [ ] Implement Mana system and Mana Potions (deferred to backlog as per user request).

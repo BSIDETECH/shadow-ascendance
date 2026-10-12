@@ -68,6 +68,17 @@ var _last_move_dir: Vector2 = Vector2.RIGHT
 @onready var magnet_area: Area2D = $MagnetArea
 
 func _ready() -> void:
+	if not InputMap.has_action("use_health_potion"):
+		InputMap.add_action("use_health_potion")
+		var ev1 := InputEventKey.new()
+		ev1.physical_keycode = KEY_1
+		InputMap.action_add_event("use_health_potion", ev1)
+	if not InputMap.has_action("use_shield_potion"):
+		InputMap.add_action("use_shield_potion")
+		var ev2 := InputEventKey.new()
+		ev2.physical_keycode = KEY_2
+		InputMap.action_add_event("use_shield_potion", ev2)
+
 	add_to_group("player")
 	
 	health_component.max_health = 100.0
@@ -112,6 +123,16 @@ func _physics_process(delta: float) -> void:
 	_handle_fire_pulse(delta)
 	_handle_spin(delta)
 	_attract_nearby_gems()
+	_handle_items()
+
+func _handle_items() -> void:
+	if Input.is_action_just_pressed("use_health_potion"):
+		if GameManager.consume_health_potion():
+			health_component.heal(100.0)
+	if Input.is_action_just_pressed("use_shield_potion"):
+		if GameManager.consume_shield_potion():
+			health_component.add_shield(50.0)
+
 
 func _handle_spin(delta: float) -> void:
 	if not spin_attack_unlocked:

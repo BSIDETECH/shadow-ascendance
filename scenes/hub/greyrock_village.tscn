@@ -27,7 +27,9 @@
 [ext_resource type="PackedScene" path="res://scenes/hub/npc_elena.tscn" id="25_elena"]
 [ext_resource type="PackedScene" path="res://scenes/hub/npc_barnaby.tscn" id="26_barnaby"]
 [ext_resource type="PackedScene" path="res://scenes/hub/npc_madre_selene.tscn" id="27_selene"]
+[ext_resource type="PackedScene" path="res://scenes/hub/npc_merchant.tscn" id="28_merchant"]
 [ext_resource type="PackedScene" path="res://scenes/ui/modals/quest_board_modal.tscn" id="28_quest_modal"]
+[ext_resource type="PackedScene" path="res://scenes/ui/modals/shop_modal.tscn" id="29_shop_modal"]
 [ext_resource type="PackedScene" path="res://scenes/ui/modals/tavern_recruit_modal.tscn" id="29_tavern_modal"]
 [ext_resource type="PackedScene" path="res://scenes/ui/dialogue/bottom_dialogue_box.tscn" id="30_dialogue_box"]
 
@@ -297,6 +299,9 @@ position = Vector2(320, 190)
 [node name="CollisionShape2D" type="CollisionShape2D" parent="Props/WellObstacle"]
 shape = SubResource("CircleShape2D_well")
 
+[node name="Merchant" parent="." instance=ExtResource("28_merchant")]
+position = Vector2(230, 190)
+
 [node name="Elena" parent="." instance=ExtResource("25_elena")]
 position = Vector2(180, 120)
 
@@ -369,5 +374,7 @@ horizontal_alignment = 1
 [node name="BottomDialogueBox" parent="UI" instance=ExtResource("30_dialogue_box")]
 
 [node name="QuestBoardModal" parent="UI" instance=ExtResource("28_quest_modal")]
+
+[node name="ShopModal" parent="UI" instance=ExtResource("29_shop_modal")]
 
 [node name="TavernRecruitModal" parent="UI" instance=ExtResource("29_tavern_modal")]
