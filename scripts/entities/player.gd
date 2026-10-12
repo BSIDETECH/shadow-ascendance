@@ -220,14 +220,26 @@ func _on_enemy_killed(_pos: Vector2, _xp: int) -> void:
 
 func _trigger_abyssal_burst() -> void:
 	# Cheat tier: Shockwave around player obliterating nearby foes
-	var enemies := get_tree().get_nodes_in_group("enemies")
-	for e in enemies:
-		if e is Node2D and is_instance_valid(e):
-			var dist := global_position.distance_to((e as Node2D).global_position)
-			if dist <= 120.0:
-				var hurtbox := (e as Node2D).get_node_or_null("HurtboxComponent") as HurtboxComponent
+	var space_state := get_world_2d().direct_space_state
+	var shape := CircleShape2D.new()
+	shape.radius = 120.0
+
+	var query := PhysicsShapeQueryParameters2D.new()
+	query.shape = shape
+	query.transform = global_transform
+	query.collide_with_areas = true
+	query.collide_with_bodies = true
+
+	var results := space_state.intersect_shape(query, 100)
+	var hit_nodes := {}
+	for res in results:
+		var collider = res.collider
+		if not hit_nodes.has(collider):
+			hit_nodes[collider] = true
+			if collider.is_in_group("enemies"):
+				var hurtbox := collider.get_node_or_null("HurtboxComponent") as HurtboxComponent
 				if hurtbox != null:
-					var kb := ((e as Node2D).global_position - global_position).normalized()
+					var kb := (collider.global_position - global_position).normalized()
 					var data := DamageData.new(45.0, DamageData.DamageType.DARK, 200.0, kb, self)
 					hurtbox.receive_hit(data)
 
@@ -241,14 +253,26 @@ func _handle_fire_pulse(delta: float) -> void:
 
 func _trigger_fire_pulse() -> void:
 	# Boss Theft Power: Expanding flame shockwave
-	var enemies := get_tree().get_nodes_in_group("enemies")
-	for e in enemies:
-		if e is Node2D and is_instance_valid(e):
-			var dist := global_position.distance_to((e as Node2D).global_position)
-			if dist <= 140.0:
-				var hurtbox := (e as Node2D).get_node_or_null("HurtboxComponent") as HurtboxComponent
+	var space_state := get_world_2d().direct_space_state
+	var shape := CircleShape2D.new()
+	shape.radius = 140.0
+
+	var query := PhysicsShapeQueryParameters2D.new()
+	query.shape = shape
+	query.transform = global_transform
+	query.collide_with_areas = true
+	query.collide_with_bodies = true
+
+	var results := space_state.intersect_shape(query, 100)
+	var hit_nodes := {}
+	for res in results:
+		var collider = res.collider
+		if not hit_nodes.has(collider):
+			hit_nodes[collider] = true
+			if collider.is_in_group("enemies"):
+				var hurtbox := collider.get_node_or_null("HurtboxComponent") as HurtboxComponent
 				if hurtbox != null:
-					var kb := ((e as Node2D).global_position - global_position).normalized()
+					var kb := (collider.global_position - global_position).normalized()
 					var data := DamageData.new(50.0, DamageData.DamageType.FIRE, 240.0, kb, self)
 					hurtbox.receive_hit(data)
 
