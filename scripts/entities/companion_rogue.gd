@@ -27,6 +27,7 @@ var _invis_cooldown_timer: float = 0.0
 var _is_dashing: bool = false
 var _dash_direction: Vector2 = Vector2.ZERO
 var _is_invisible: bool = false
+var _dash_area: Area2D
 
 func _init() -> void:
 	max_health = 90.0
@@ -42,6 +43,17 @@ func _ready() -> void:
 	if sprite != null and sprite.texture == null:
 		# Using a generic texture for now, similar to other companions
 		sprite.texture = load("res://assets/kenney_tiny_dungeon/Tiles/tile_0088.png")
+
+	_dash_area = Area2D.new()
+	_dash_area.name = "DashArea"
+	_dash_area.collision_layer = 0
+	_dash_area.collision_mask = 4 # Enemy Hurtbox Layer
+	var shape = CollisionShape2D.new()
+	var circle = CircleShape2D.new()
+	circle.radius = 32.0
+	shape.shape = circle
+	_dash_area.add_child(shape)
+	add_child(_dash_area)
 
 func _physics_process(delta: float) -> void:
 	if is_dying:
@@ -74,14 +86,13 @@ func _process_dash(delta: float) -> void:
 		return
 
 	# Damage enemies during dash
-	var tree := get_tree()
-	if tree != null:
-		var enemies := tree.get_nodes_in_group("enemies")
-		for e in enemies:
-			if e is Node2D and is_instance_valid(e):
-				var node := e as Node2D
-				if global_position.distance_to(node.global_position) <= 32.0:
-					_apply_dash_impact(node)
+	var overlapping := _dash_area.get_overlapping_areas()
+	for area in overlapping:
+		var hurtbox := area as HurtboxComponent
+		if hurtbox != null and hurtbox.team_index != 0:
+			var node := hurtbox.owner as Node2D
+			if node != null and node.is_in_group("enemies"):
+				_apply_dash_impact(node)
 
 	if _dash_timer <= 0.0:
 		_is_dashing = false
