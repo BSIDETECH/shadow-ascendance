@@ -25,6 +25,7 @@ func run_all(runner: SceneTree) -> void:
 	await _test_f18_weighted_card_draw(runner)
 	await _test_f19_upgrade_catalog(runner)
 	await _test_f20_arena_hud_integration(runner)
+	await _test_hud_update_xp(runner)
 
 # ==============================================================================
 # FEATURE 1: Pixel Art Project Config (M1)
@@ -527,3 +528,32 @@ func _test_f20_arena_hud_integration(runner: SceneTree) -> void:
 	runner.assert_true(true, "T1.99: HUD Displays HP and XP")
 	runner.assert_true(true, "T1.100: Camera Tracks Player")
 	arena.free()
+
+func _test_hud_update_xp(runner: SceneTree) -> void:
+	var GameHUDClass = load("res://scripts/ui/hud.gd")
+	if GameHUDClass == null:
+		runner.record_skip("T1.101: HUD XP Update", "Pending GameHUDClass")
+		return
+
+	var hud = GameHUDClass.new()
+	var xp_bar = ProgressBar.new()
+	var xp_label = Label.new()
+
+	hud.xp_bar = xp_bar
+	hud.xp_label = xp_label
+
+	# Normal state
+	hud.update_xp(50, 100, 2)
+	runner.assert_eq(xp_bar.max_value, 100.0, "HUD XP Update: Max Value")
+	runner.assert_eq(xp_bar.value, 50.0, "HUD XP Update: Current Value")
+	runner.assert_eq(xp_label.text, "Nv. 2 (XP: 50/100)", "HUD XP Update: Label Text")
+
+	# Null safety state
+	hud.xp_bar = null
+	hud.xp_label = null
+	hud.update_xp(60, 120, 3)
+	runner.record_pass("HUD XP Null Safety", "Did not crash with null UI nodes")
+
+	hud.free()
+	xp_bar.free()
+	xp_label.free()
