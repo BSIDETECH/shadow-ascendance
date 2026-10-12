@@ -205,6 +205,23 @@ func _test_part2_paladin_guardian_class() -> void:
 	pal._perform_cleave()
 	assert_almost_eq(enemy_hc.current_health, 68.0, 0.1, "M2.29: Paladin Cleave damages enemy within 50px for 32 damage (100 -> 68 HP)")
 
+	# Test Aegis Shield deployment
+	pal.deploy_aegis_shield()
+	assert_almost_eq(pal._aegis_cooldown_timer, pal.aegis_cooldown, 0.05, "M2.29.1: Deploying Aegis Shield sets cooldown timer")
+
+	var found_bubble: Area2D = null
+	for child in root.get_children():
+		if child.get_script() != null and "shield_bubble.gd" in child.get_script().resource_path:
+			found_bubble = child
+			break
+
+	assert_true(found_bubble != null, "M2.29.2: Paladin successfully deployed a ShieldBubble")
+	if found_bubble != null:
+		assert_almost_eq(found_bubble.damage_reduction, 0.30, 0.05, "M2.29.3: Deployed ShieldBubble has 30% damage reduction")
+		assert_almost_eq(found_bubble.radius, 60.0, 0.5, "M2.29.4: Deployed ShieldBubble has 60.0 radius")
+		assert_almost_eq(found_bubble.lifetime, 4.5, 0.1, "M2.29.5: Deployed ShieldBubble has 4.5s lifetime")
+		found_bubble.queue_free()
+
 	dummy_enemy.free()
 	root.remove_child(pal)
 	pal.free()
