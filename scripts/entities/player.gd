@@ -12,12 +12,6 @@ signal dashed(direction: Vector2)
 @export var can_attack: bool = true
 @export var combat_enabled: bool = true
 
-# Mana system
-@export var max_mana: float = 100.0
-@export var current_mana: float = 100.0
-@export var mana_regen: float = 1.0
-@export var skill_mana_cost: float = 10.0
-
 # Upgradable modifiers via Gacha
 var damage_mult: float = 1.0
 var attack_speed_mult: float = 1.0
@@ -102,15 +96,8 @@ func _ready() -> void:
 	slash_visual.visible = false
 	_apply_weapon_mode()
 	
-	if GameManager != null and "blacksmith_bonus_damage" in GameManager: # Checa se o AutoLoad tá de pé
-		base_damage += GameManager.blacksmith_bonus_damage
-		health_component.max_health += GameManager.blacksmith_bonus_health
-		health_component.current_health += GameManager.blacksmith_bonus_health
-		base_speed += GameManager.blacksmith_bonus_speed
-
 	EventBus.enemy_died.connect(_on_enemy_killed)
 	_update_magnet_radius()
-	EventBus.emit_player_mana_changed(current_mana, max_mana)
 
 func unlock_weapon() -> void:
 	weapon_unlocked = true
@@ -129,7 +116,6 @@ func _apply_weapon_mode() -> void:
 			slash_hitbox.scale = Vector2.ONE
 
 func _physics_process(delta: float) -> void:
-	_handle_mana_regen(delta)
 	_handle_timers(delta)
 	_handle_aim()
 	_handle_movement(delta)
@@ -147,11 +133,6 @@ func _handle_items() -> void:
 		if GameManager.consume_shield_potion():
 			health_component.add_shield(50.0)
 
-
-func _handle_mana_regen(delta: float) -> void:
-	if current_mana < max_mana:
-		current_mana = minf(max_mana, current_mana + mana_regen * delta)
-		EventBus.emit_player_mana_changed(current_mana, max_mana)
 
 func _handle_spin(delta: float) -> void:
 	if not spin_attack_unlocked:
@@ -269,53 +250,6 @@ func _handle_combat() -> void:
 		return
 	if Input.is_action_pressed("attack") and _attack_timer <= 0.0:
 		_execute_shadow_slash()
-
-	if Input.is_action_just_pressed("skill"):
-		_try_use_skill()
-
-func _try_use_skill() -> void:
-	if current_mana >= skill_mana_cost:
-		current_mana -= skill_mana_cost
-		EventBus.emit_player_mana_changed(current_mana, max_mana)
-		_use_active_skills()
-
-func _use_active_skills() -> void:
-	# Default Active Skill: Small burst around the player
-	var space_state := get_world_2d().direct_space_state
-	var shape := CircleShape2D.new()
-	shape.radius = 80.0
-
-	var query := PhysicsShapeQueryParameters2D.new()
-	query.shape = shape
-	query.transform = global_transform
-	query.collide_with_areas = true
-	query.collide_with_bodies = true
-
-	var results := space_state.intersect_shape(query, 100)
-	var hit_nodes := {}
-	for res in results:
-		var collider = res.collider
-		if not hit_nodes.has(collider):
-			hit_nodes[collider] = true
-			if collider.is_in_group("enemies"):
-				var hurtbox := collider.get_node_or_null("HurtboxComponent") as HurtboxComponent
-				if hurtbox != null:
-					var kb := (collider.global_position - global_position).normalized()
-					var data := DamageData.new(base_damage * damage_mult * 1.5, DamageData.DamageType.MAGIC, 150.0, kb, self)
-					hurtbox.receive_hit(data)
-
-	# Visual effect for skill cast
-	var visual = ColorRect.new()
-	visual.color = Color(0.2, 0.4, 1.0, 0.5)
-	visual.size = Vector2(160, 160)
-	visual.position = Vector2(-80, -80)
-	add_child(visual)
-	var tw = create_tween()
-	tw.tween_property(visual, "color:a", 0.0, 0.3)
-	tw.tween_callback(visual.queue_free)
-
-	# Emit spell_casted signal so companions also benefit if they listen
-	EventBus.spell_casted.emit()
 
 func _execute_shadow_slash() -> void:
 	_attack_timer = attack_cooldown / attack_speed_mult

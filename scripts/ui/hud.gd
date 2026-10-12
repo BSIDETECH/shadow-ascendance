@@ -4,8 +4,6 @@ extends CanvasLayer
 @onready var hp_container: HBoxContainer = $Control/Margin/VBox/HPContainer
 @onready var hp_bar: ProgressBar = $Control/Margin/VBox/HPContainer/HPBar
 @onready var hp_label: Label = $Control/Margin/VBox/HPContainer/HPLabel
-@onready var mana_bar: ProgressBar = $Control/Margin/VBox/ManaContainer/ManaBar
-@onready var mana_label: Label = $Control/Margin/VBox/ManaContainer/ManaLabel
 @onready var xp_bar: ProgressBar = $Control/Margin/VBox/XPContainer/XPBar
 @onready var xp_label: Label = $Control/Margin/VBox/XPContainer/XPLabel
 @onready var kills_label: Label = $Control/Margin/VBox/KillsLabel
@@ -26,7 +24,7 @@ var _style_active: StyleBox
 var _style_empty: StyleBox
 var _survival_seconds: float = 0.0
 var _shake_tween: Tween
-var _last_charges: int = 1
+var _last_charges: int = 3
 
 var _event_bus: Node = null
 
@@ -49,9 +47,6 @@ func _ready() -> void:
 		if eb.has_signal("player_health_changed"):
 			eb.player_health_changed.connect(update_health)
 
-		if eb.has_signal("player_mana_changed"):
-			eb.player_mana_changed.connect(update_mana)
-
 		if eb.has_signal("leadership_charges_changed"):
 			eb.leadership_charges_changed.connect(update_leadership_charges)
 
@@ -62,7 +57,8 @@ func _ready() -> void:
 			eb.gold_changed.connect(_on_gold_changed)
 
 	_setup_gold_hud()
-	update_leadership_charges(1, 1)
+	_setup_potions_hud()
+	update_leadership_charges(3, 3)
 
 var health_potions_label: Label = null
 var shield_potions_label: Label = null
@@ -152,36 +148,12 @@ func _process(delta: float) -> void:
 	if time_label != null:
 		time_label.text = "Tempo: %02d:%02d" % [minutes, seconds]
 
-	# Check for hired companions and toggle leadership visibility
-	var gm := get_tree().root.get_node_or_null("GameManager")
-	if gm != null and gm.has_method("get_active_party_roster"):
-		var roster = gm.get_active_party_roster()
-		if leadership_container != null:
-			leadership_container.visible = (roster.size() > 0)
-
-	# Update recharge label with time
-	var lm := get_tree().root.get_node_or_null("LeadershipManager")
-	if lm != null and recharge_label != null and leadership_container != null and leadership_container.visible:
-		if lm.has_method("get_cooldown_time_left"):
-			var cd: float = lm.get_cooldown_time_left()
-			if cd > 0.0:
-				recharge_label.text = "Recarga: %.1f s" % cd
-			else:
-				recharge_label.text = "Pronto"
-
 func update_health(current: float, max_hp: float) -> void:
 	if hp_bar != null:
 		hp_bar.max_value = max_hp
 		hp_bar.value = current
 	if hp_label != null:
 		hp_label.text = "HP: %d/%d" % [int(current), int(max_hp)]
-
-func update_mana(current: float, max_mana: float) -> void:
-	if mana_bar != null:
-		mana_bar.max_value = max_mana
-		mana_bar.value = current
-	if mana_label != null:
-		mana_label.text = "Mana: %d/%d" % [int(current), int(max_mana)]
 
 func update_xp(current_xp: int, next_xp: int, level: int) -> void:
 	if xp_bar != null:
@@ -193,25 +165,22 @@ func update_xp(current_xp: int, next_xp: int, level: int) -> void:
 func update_kills(kills: int) -> void:
 	if kills_label != null:
 		kills_label.text = "Abates: %d" % kills
+	if recharge_label != null:
+		var prog: int = kills % 10
+		recharge_label.text = "Recarga: %d/10 abates" % prog
 
-func update_leadership_charges(current: int, max_charges: int = 1) -> void:
+func update_leadership_charges(current: int, max_charges: int = 3) -> void:
 	if charges_count_label != null:
 		charges_count_label.text = "[ %d/%d ]" % [current, max_charges]
 
-	# With only 1 charge, pip2 and pip3 can be hidden
-	if _pips.size() >= 3:
-		if _pips[1] != null: _pips[1].visible = false
-		if _pips[2] != null: _pips[2].visible = false
-
-	if _pips.size() >= 1:
-		var pip := _pips[0]
+	for i in range(_pips.size()):
+		var pip := _pips[i]
 		if pip != null:
-			pip.visible = true
-			if current > 0:
+			if i < current:
 				if _style_active != null:
 					pip.add_theme_stylebox_override("panel", _style_active)
-				if current > _last_charges:
-					play_charge_gained_punch(0)
+				if current > _last_charges and i == current - 1:
+					play_charge_gained_punch(i)
 			else:
 				if _style_empty != null:
 					pip.add_theme_stylebox_override("panel", _style_empty)
