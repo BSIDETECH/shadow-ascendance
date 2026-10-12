@@ -47,7 +47,7 @@ func is_alive() -> bool:
 	return current_health > 0.0
 
 func take_damage(data: DamageData) -> void:
-	if data == null or not is_alive() or is_currently_invincible():
+	if data == null or data.amount <= 0.0 or not is_alive() or is_currently_invincible():
 		return
 
 	var damage_amount: float = data.amount
