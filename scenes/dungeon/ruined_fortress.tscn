@@ -70,6 +70,14 @@ script = ExtResource("4_boss")
 [node name="Player" parent="." unique_id=601090869 instance=ExtResource("5_player")]
 position = Vector2(0, 160)
 
+[node name="Camera2D" type="Camera2D" parent="Player" unique_id=987654321]
+limit_left = -450
+limit_top = -300
+limit_right = 450
+limit_bottom = 300
+position_smoothing_enabled = true
+position_smoothing_speed = 8.0
+
 [node name="VictoryPortal" type="Area2D" parent="." unique_id=1499056410]
 visible = false
 collision_layer = 0
