@@ -3,6 +3,7 @@ extends Node
 ## Centralized EventBus AutoLoad for global decoupled events.
 ## Adheres to godot-signal-architecture guidelines.
 
+signal spell_casted()
 signal damage_dealt(target: Node, damage_data: DamageData)
 signal entity_died(entity: Node, death_position: Vector2)
 signal enemy_died(position: Vector2, xp_val: int)

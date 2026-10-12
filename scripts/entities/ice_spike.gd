@@ -97,11 +97,26 @@ func _on_body_entered(body: Node2D) -> void:
 	_shatter()
 
 func _apply_ice_slow(entity: Node) -> void:
+	var actual_factor = slow_factor
+	var p = get_tree().get_first_node_in_group("player")
+	var is_glacial = (p != null and p.has_meta("glacial_prison_unlocked") and p.get_meta("glacial_prison_unlocked"))
+	if is_glacial:
+		actual_factor = 1.0 # Root/Freeze
+
 	if entity.has_method("apply_slow"):
-		entity.apply_slow(slow_factor, slow_duration)
+		entity.apply_slow(actual_factor, slow_duration)
 	elif entity.get("_slow_timer") != null and entity.get("_slow_factor") != null:
-		entity.set("_slow_factor", maxf(float(entity.get("_slow_factor")), slow_factor))
+		entity.set("_slow_factor", maxf(float(entity.get("_slow_factor")), actual_factor))
 		entity.set("_slow_timer", maxf(float(entity.get("_slow_timer")), slow_duration))
+
+	if is_glacial and entity is Node2D:
+		var enemies = get_tree().get_nodes_in_group("enemies")
+		for e in enemies:
+			if e != entity and is_instance_valid(e) and (e as Node2D).global_position.distance_to(entity.global_position) <= 60.0:
+				if e.has_method("apply_slow"): e.apply_slow(1.0, 1.5)
+				elif e.get("_slow_timer") != null:
+					e.set("_slow_factor", 1.0)
+					e.set("_slow_timer", 1.5)
 
 func _shatter() -> void:
 	set_physics_process(false)

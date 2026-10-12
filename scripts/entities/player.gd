@@ -26,6 +26,23 @@ var executioner_unlocked: bool = false
 var kill_counter: int = 0
 @export var weapon_unlocked: bool = false # Starts unarmed: single-target punch ("soquinho")
 
+# New Gacha Flags
+var vorpal_sword_unlocked: bool = false
+var alpha_strike_unlocked: bool = false
+var wind_momentum_unlocked: bool = false
+var spin_attack_unlocked: bool = false
+var insatiable_hunger_unlocked: bool = false
+var cosmic_rupture_unlocked: bool = false
+var void_feast_unlocked: bool = false
+var noxian_guillotine_unlocked: bool = false
+var ancestral_resurrect_unlocked: bool = false
+
+var _wind_distance: float = 0.0
+var _spin_timer: float = 0.0
+var _is_spinning: bool = false
+var _ancestral_used: bool = false
+var void_feast_stacks: int = 0
+
 # Geometries for Punch (unarmed) vs Shadow Blades (weapon unlocked)
 static var PUNCH_POLYGON := PackedVector2Array([
 	Vector2(4, -5), Vector2(18, -4), Vector2(22, 0), Vector2(18, 4), Vector2(4, 5)
@@ -82,6 +99,10 @@ func _apply_weapon_mode() -> void:
 		slash_visual.polygon = WEAPON_POLYGON if weapon_unlocked else PUNCH_POLYGON
 	if slash_hitbox != null:
 		slash_hitbox.damage_type = DamageData.DamageType.DARK if weapon_unlocked else DamageData.DamageType.PHYSICAL
+		if vorpal_sword_unlocked:
+			slash_hitbox.scale = Vector2(1.25, 1.25)
+		else:
+			slash_hitbox.scale = Vector2.ONE
 
 func _physics_process(delta: float) -> void:
 	_handle_timers(delta)
@@ -89,7 +110,35 @@ func _physics_process(delta: float) -> void:
 	_handle_movement(delta)
 	_handle_combat()
 	_handle_fire_pulse(delta)
+	_handle_spin(delta)
 	_attract_nearby_gems()
+
+func _handle_spin(delta: float) -> void:
+	if not spin_attack_unlocked:
+		return
+
+	if _is_spinning:
+		_spin_timer -= delta
+		if _spin_timer <= 0.0:
+			_is_spinning = false
+			_spin_timer = 8.0
+			slash_visual.visible = false
+			slash_hitbox.monitoring = false
+			move_speed_mult /= 1.2
+			slash_visual.scale = Vector2.ONE # FIX: Reset scale
+		else:
+			slash_visual.visible = true
+			slash_visual.rotation += 10.0 * delta
+			slash_hitbox.monitoring = true
+			slash_hitbox.rotation += 10.0 * delta
+			slash_hitbox.damage_amount = base_damage * damage_mult * 0.5
+	else:
+		_spin_timer -= delta
+		if _spin_timer <= 0.0:
+			_is_spinning = true
+			_spin_timer = 2.0
+			move_speed_mult *= 1.2
+			slash_visual.scale = Vector2(1.5, 1.5)
 
 func _handle_timers(delta: float) -> void:
 	if _dash_cd_timer > 0.0:
@@ -111,6 +160,14 @@ func _handle_movement(delta: float) -> void:
 	if _is_dashing:
 		velocity = _dash_direction * dash_speed
 		move_and_slide()
+		if alpha_strike_unlocked:
+			var enemies = get_tree().get_nodes_in_group("enemies")
+			for e in enemies:
+				if is_instance_valid(e) and global_position.distance_to(e.global_position) < 45.0:
+					var hurtbox = e.get_node_or_null("HurtboxComponent")
+					if hurtbox:
+						var dmg = DamageData.new(base_damage * damage_mult, DamageData.DamageType.PHYSICAL, 0.0, Vector2.ZERO, self)
+						hurtbox.receive_hit(dmg)
 		return
 
 	var input_vector := Input.get_vector("move_left", "move_right", "move_up", "move_down")
@@ -118,6 +175,14 @@ func _handle_movement(delta: float) -> void:
 		_last_move_dir = input_vector.normalized()
 		velocity = input_vector * (base_speed * move_speed_mult)
 		sprite.flip_h = input_vector.x < 0.0
+
+		if wind_momentum_unlocked:
+			_wind_distance += velocity.length() * delta
+			if _wind_distance >= 500.0:
+				_wind_distance = 0.0
+				health_component.external_damage_mitigation = 0.5
+				var tw = create_tween()
+				tw.tween_property(health_component, "external_damage_mitigation", 0.0, 2.0)
 	else:
 		velocity = velocity.move_toward(Vector2.ZERO, 900.0 * delta)
 
@@ -135,6 +200,8 @@ func _start_dash() -> void:
 
 	# I-frames during dash
 	health_component.is_invincible = true
+	if alpha_strike_unlocked:
+		health_component.is_invincible = true # Alpha strike garantee invincibility
 	EventBus.emit_player_dashed(_dash_direction)
 
 	# Spawn shadow afterimage
@@ -172,6 +239,35 @@ func _execute_shadow_slash() -> void:
 	slash_hitbox.damage_amount = current_damage
 	slash_hitbox.monitoring = true
 	slash_visual.visible = true
+
+	# Immediate hit detection for Vorpal, Noxian, and Solar Flare
+	await get_tree().physics_frame # ensure physics state is updated
+	var enemies = slash_hitbox.get_overlapping_areas()
+	for area in enemies:
+		if area is HurtboxComponent and area.team_index != 0:
+			var target = area.owner if area.owner else area.get_parent()
+			if is_instance_valid(target):
+				var extra_dmg = 0.0
+				if target.has_meta("marked_by_solar") and target.get_meta("marked_by_solar"):
+					extra_dmg += 40.0 * damage_mult
+					target.set_meta("marked_by_solar", false)
+				if vorpal_sword_unlocked:
+					var target_health = target.get_node_or_null("HealthComponent")
+					if target_health:
+						extra_dmg += target_health.max_health * 0.05
+				if noxian_guillotine_unlocked:
+					var target_health = target.get_node_or_null("HealthComponent")
+					if target_health and target_health.current_health < target_health.max_health * 0.3:
+						extra_dmg += 9999.0
+						# Fear
+						var all_enemies = get_tree().get_nodes_in_group("enemies")
+						for e in all_enemies:
+							if e != target and is_instance_valid(e) and global_position.distance_to(e.global_position) < 150.0:
+								if e.has_method("apply_stun"): e.apply_stun(1.5)
+				if extra_dmg > 0.0:
+					var kb_dir = (target.global_position - global_position).normalized()
+					var data = DamageData.new(extra_dmg, DamageData.DamageType.DARK, 50.0, kb_dir, self)
+					area.receive_hit(data)
 
 	if not weapon_unlocked:
 		# Unarmed Punch: Fast forward jab, small fist/impact burst
@@ -216,6 +312,26 @@ func _on_enemy_killed(_pos: Vector2, _xp: int) -> void:
 
 	if abyssal_burst_unlocked and (kill_counter % 6 == 0):
 		_trigger_abyssal_burst()
+
+	if cosmic_rupture_unlocked and (kill_counter % 20 == 0):
+		var mouse_dir = (get_global_mouse_position() - global_position).normalized()
+		var enemies = get_tree().get_nodes_in_group("enemies")
+		for e in enemies:
+			if is_instance_valid(e):
+				var e_dir = (e.global_position - global_position).normalized()
+				if e_dir.dot(mouse_dir) > 0.9: # Narrow angle cone / laser
+					var hurtbox = e.get_node_or_null("HurtboxComponent")
+					if hurtbox:
+						var data = DamageData.new(80.0 * damage_mult, DamageData.DamageType.DARK, 100.0, mouse_dir, self)
+						hurtbox.receive_hit(data)
+
+	if void_feast_unlocked and _xp >= 10 and void_feast_stacks < 10:
+		void_feast_stacks += 1
+		health_component.max_health += 20.0
+		health_component.current_health += 20.0
+		sprite.scale *= 1.05
+		damage_mult += 0.05
+		health_component.health_changed.emit(health_component.current_health, health_component.max_health)
 
 func _trigger_abyssal_burst() -> void:
 	# Cheat tier: Shockwave around player obliterating nearby foes
@@ -278,11 +394,50 @@ func _trigger_fire_pulse() -> void:
 
 func _on_health_changed(current: float, max_hp: float) -> void:
 	EventBus.emit_player_health_changed(current, max_hp)
+	if insatiable_hunger_unlocked:
+		if current <= max_hp * 0.5:
+			if not has_meta("hunger_active"):
+				set_meta("hunger_active", true)
+				set_meta("old_lifesteal", lifesteal_on_kill)
+				lifesteal_on_kill = (lifesteal_on_kill if lifesteal_on_kill > 0 else 2.0) * 3.0
+				attack_speed_mult += 0.5
+				var group_allies := get_tree().get_nodes_in_group("companions")
+				for ally in group_allies:
+					if ally != null and is_instance_valid(ally) and "cast_cooldown" in ally:
+						ally.cast_cooldown *= 0.5 # 50% ASPD
+		else:
+			if has_meta("hunger_active"):
+				remove_meta("hunger_active")
+				if has_meta("old_lifesteal"):
+					lifesteal_on_kill = get_meta("old_lifesteal")
+				else:
+					lifesteal_on_kill /= 3.0
+				attack_speed_mult -= 0.5
+				var group_allies := get_tree().get_nodes_in_group("companions")
+				for ally in group_allies:
+					if ally != null and is_instance_valid(ally) and "cast_cooldown" in ally:
+						ally.cast_cooldown /= 0.5
 
 var is_dead: bool = false
 
 
 func _on_died() -> void:
+	if ancestral_resurrect_unlocked and not _ancestral_used:
+		_ancestral_used = true
+		health_component.current_health = health_component.max_health * 0.5
+		health_component.health_changed.emit(health_component.current_health, health_component.max_health)
+		# Stasis logic (pause for 2s)
+		can_attack = false
+		combat_enabled = false
+		var tw = create_tween()
+		tw.tween_callback(func():
+			can_attack = true
+			combat_enabled = true
+			health_component.is_invincible = false
+		).set_delay(2.0)
+		health_component.is_invincible = true
+		return
+
 	if is_dead:
 		return
 	is_dead = true

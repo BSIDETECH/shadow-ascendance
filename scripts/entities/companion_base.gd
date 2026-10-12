@@ -232,7 +232,12 @@ func _update_sprite_facing() -> void:
 
 func _handle_combat(_delta: float) -> void:
 	# Virtual hook for subclasses to implement specific attacks
-	pass
+	var p = get_tree().get_first_node_in_group("player")
+	if p != null and p.has_meta("solar_flare_unlocked") and p.get_meta("solar_flare_unlocked"):
+		var enemies = get_tree().get_nodes_in_group("enemies")
+		for e in enemies:
+			if is_instance_valid(e) and e is Node2D and global_position.distance_to(e.global_position) <= 60.0:
+				e.set_meta("marked_by_solar", true)
 
 func _on_leadership_order_issued(order_type: int, target_pos: Vector2) -> void:
 	if is_dying:
