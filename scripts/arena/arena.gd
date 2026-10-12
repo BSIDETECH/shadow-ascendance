@@ -84,7 +84,7 @@ func _on_portal_entered(body: Node2D) -> void:
 
 		var gm = get_tree().root.get_node_or_null("GameManager")
 		if gm != null and gm.has_method("trigger_ending"):
-			gm.call("trigger_ending", "GOOD_ENDING")
+			gm.call("trigger_ending")
 		elif gm != null and gm.has_method("transition_to_hub"):
 			gm.call("transition_to_hub")
 
