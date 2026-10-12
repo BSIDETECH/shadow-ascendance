@@ -56,6 +56,25 @@ func _explode() -> void:
 					)
 					hurtbox.receive_hit(data)
 
+	# Spread Shot logic
+	var p = get_tree().get_first_node_in_group("player")
+	if p != null and p.has_meta("spread_shot_unlocked") and p.get_meta("spread_shot_unlocked") and not has_meta("is_bounced"):
+		var nearest = null
+		var min_dist = 99999.0
+		for e in enemies:
+			if e is Node2D and is_instance_valid(e) and global_position.distance_to(e.global_position) > aoe_radius:
+				var dist = global_position.distance_to(e.global_position)
+				if dist < min_dist and dist < 200.0:
+					min_dist = dist
+					nearest = e
+		if nearest != null:
+			var new_fb = load("res://scenes/entities/projectile/fireball.tscn").instantiate()
+			new_fb.global_position = global_position
+			new_fb.direction = (nearest.global_position - global_position).normalized()
+			new_fb.damage = damage
+			new_fb.set_meta("is_bounced", true)
+			get_parent().add_child(new_fb)
+
 	# Explosion visual pop
 	var tween := create_tween()
 	sprite.modulate = Color(1.5, 0.8, 0.2, 1.0) # Bright fire flash

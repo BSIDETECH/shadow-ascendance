@@ -1,6 +1,8 @@
 class_name GachaScreen
 extends CanvasLayer
 
+var demigod_forge_active: bool = false
+
 signal card_chosen(card_data: Dictionary)
 
 const RARITY_COLORS := {
@@ -16,7 +18,9 @@ const STARTER_CHEAT_CARDS: Array[Dictionary] = [
 	{"id": "ex_god", "rarity": "EX", "title": "⚡ DÁDIVA DO DESTINO", "desc": "[CHEAT] Dano DOBRADO (+100%) e Recarga do Dash reduzida em 60%!"},
 	{"id": "ex_mage_wrath", "rarity": "EX", "title": "🔥 CATACLISMO ELEMENTAL", "desc": "[CHEAT] A Maga dispara 3 bolas de fogo por ataque com dano dobrado (+100%)!"},
 	{"id": "ssr_vampire", "rarity": "SSR", "title": "🩸 CEIFADOR CARMESIM", "desc": "[ARQUÉTIPO] +4 de Vida roubada por monstro abatido e +40% cadência de corte!"},
-	{"id": "ssr_storm", "rarity": "SSR", "title": "🌪️ TEMPESTADE DE LÂMINAS", "desc": "[ARQUÉTIPO] +75% Velocidade de Corte e +35% Velocidade de Movimento!"}
+		{"id": "ssr_storm", "rarity": "SSR", "title": "🌪️ TEMPESTADE DE LÂMINAS", "desc": "[ARQUÉTIPO] +75% Velocidade de Corte e +35% Velocidade de Movimento!"},
+	{"id": "glyph_fury", "rarity": "EX", "title": "👑 Fúria dos Glifos", "desc": "Todo feitiço conjurado reseta 50% do tempo de recarga das habilidades dos companheiros."},
+	{"id": "demigod_forge", "rarity": "EX", "title": "🔥 Forja do Semi-Deus", "desc": "Todas as cartas que você adquirir a partir deste momento vêm aprimoradas para uma raridade acima (R vira SR, SR vira SSR)."}
 ]
 
 # Cartas Regulares Balanceadas por Raridade (Level 3+)
@@ -24,32 +28,47 @@ const POOL_R: Array[Dictionary] = [
 	{"id": "dmg_up", "rarity": "R", "title": "Lâmina Voraz", "desc": "+25% Dano das Lâminas de Sombra"},
 	{"id": "spd_up", "rarity": "R", "title": "Passos da Penumbra", "desc": "+20% Velocidade de Movimento"},
 	{"id": "mag_up", "rarity": "R", "title": "Vórtice Espiritual", "desc": "+60% Raio de Atração de XP"},
-	{"id": "hp_up", "rarity": "R", "title": "Vigor de Ferro", "desc": "+30 de Vida Máxima"}
+		{"id": "hp_up", "rarity": "R", "title": "Vigor de Ferro", "desc": "+30 de Vida Máxima"},
+	{"id": "vorpal_sword", "rarity": "R", "title": "Espada Vorpal", "desc": "Os próximos ataques corpo a corpo causam dano percentual adicional e aumentam o alcance de corte."},
+	{"id": "alpha_strike", "rarity": "R", "title": "Golpe Alpha", "desc": "O Dash do jogador causa dano cortante aos inimigos atravessados e concede invulnerabilidade durante o deslocamento."},
+	{"id": "wind_momentum", "rarity": "R", "title": "Vento Impetuoso", "desc": "Aumenta a velocidade de movimento e gera um escudo reflexivo temporário após acumular distância percorrida."},
+	{"id": "spread_shot", "rarity": "R", "title": "Tiro Espalhado", "desc": "Seus disparos ou projéteis ricocheteiam no inimigo mais próximo."}
 ]
 
 const POOL_SR: Array[Dictionary] = [
 	{"id": "mage_multi", "rarity": "SR", "title": "Eco Arcano da Maga", "desc": "A Maga dispara +1 Projétil por ataque"},
 	{"id": "dash_cdr", "rarity": "SR", "title": "Reflexo Fantasma", "desc": "-35% Tempo de Recarga do Dash"},
 	{"id": "heal_full", "rarity": "SR", "title": "Vitalidade Monarca", "desc": "+40 Vida Máxima e Cura Total"},
-	{"id": "mage_haste", "rarity": "SR", "title": "Aceleração Astral", "desc": "+40% Cadência de Feitiços da Maga"}
+		{"id": "mage_haste", "rarity": "SR", "title": "Aceleração Astral", "desc": "+40% Cadência de Feitiços da Maga"},
+	{"id": "spin_attack", "rarity": "SR", "title": "Redemoinho", "desc": "A cada 8s, o jogador gira por 2s, causando dano de corte contínuo em área e ignorando desacelerações."},
+	{"id": "glacial_prison", "rarity": "SR", "title": "Prisão Glacial", "desc": "Inimigos atingidos pela Maga sofrem congelamento/enraizamento em área por 1.5s."},
+	{"id": "insatiable_hunger", "rarity": "SR", "title": "Fome Insaciável", "desc": "Quando com menos de 50% de vida, o jogador e os companheiros ganham +50% de velocidade de ataque e roubo de vida triplicado."},
+	{"id": "solar_flare", "rarity": "SR", "title": "Pilar Solar", "desc": "Ataques de aliados marcam os inimigos; seu próximo golpe consome a marca para dano mágico extra em área."}
 ]
 
 const POOL_SSR: Array[Dictionary] = [
 	{"id": "lifesteal", "rarity": "SSR", "title": "Dreno Sanguíneo", "desc": "+2.5 de Vida roubada por abate"},
 	{"id": "atk_spd", "rarity": "SSR", "title": "Frenesi do Abismo", "desc": "+50% Velocidade de Corte de Sombras"},
-	{"id": "mage_dmg", "rarity": "SSR", "title": "Maestria Elemental", "desc": "+60% Dano da Maga"}
+		{"id": "mage_dmg", "rarity": "SSR", "title": "Maestria Elemental", "desc": "+60% Dano da Maga"},
+	{"id": "cosmic_rupture", "rarity": "SSR", "title": "Ruptura Cósmica", "desc": "A cada 20 monstros abatidos, conjura um raio de luz concentrado atravessando o mapa na direção do cursor."},
+	{"id": "void_feast", "rarity": "SSR", "title": "Banquete do Vazio", "desc": "Ao abater elites ou chefes, você ganha permanentemente +20 de Vida Máxima e +5% de tamanho/dano (acumula até 10 vezes)."},
+	{"id": "noxian_guillotine", "rarity": "SSR", "title": "Guilhotina de Noxus", "desc": "Inimigos abaixo de 30% de vida sofrem execução instantânea. Se executados, causa uma explosão de medo e reinicia o efeito imediatamente."},
+	{"id": "ancestral_resurrect", "rarity": "SSR", "title": "Ressurreição Ancestral", "desc": "Ao receber dano fatal, você não morre: congela em êxtase por 2s e revive com 50% de vida (1 uso por run)."}
 ]
 
 const POOL_EX: Array[Dictionary] = [
 	{"id": "ex_abyss", "rarity": "EX", "title": "👑 AUTORIDADE DO MONARCA", "desc": "[CHEAT] A cada 6 abates, uma Explosão Abissal devasta a tela!"},
-	{"id": "ex_god", "rarity": "EX", "title": "⚡ DÁDIVA DO DESTINO", "desc": "[CHEAT] Dano DOBRADO (+100%) e Dash 60% mais rápido!"}
+		{"id": "ex_god", "rarity": "EX", "title": "⚡ DÁDIVA DO DESTINO", "desc": "[CHEAT] Dano DOBRADO (+100%) e Dash 60% mais rápido!"},
+	{"id": "glyph_fury", "rarity": "EX", "title": "👑 Fúria dos Glifos", "desc": "Todo feitiço conjurado reseta 50% do tempo de recarga das habilidades dos companheiros."},
+	{"id": "demigod_forge", "rarity": "EX", "title": "🔥 Forja do Semi-Deus", "desc": "Todas as cartas que você adquirir a partir deste momento vêm aprimordas para uma raridade acima (R vira SR, SR vira SSR)."}
 ]
 
 # Cartas Exclusivas de Roubo de Chefe
 const BOSS_THEFT_CARDS: Array[Dictionary] = [
 	{"id": "boss_demon_heart", "rarity": "EX", "title": "👹 CORAÇÃO TITÂNICO", "desc": "[ROUBO DO CHEFE] +100 Vida Máxima, Cura Total e emite pulsos de fogo devastadores a cada 3s!"},
 	{"id": "boss_executioner", "rarity": "EX", "title": "💀 CARNICEIRO DO ABISMO", "desc": "[ROUBO DO CHEFE] Golpes têm 20% de chance de causar Dano Triplo fatal e +40% de dano base!"},
-	{"id": "boss_meteor", "rarity": "EX", "title": "🌋 METEORO DA MAGA", "desc": "[ROUBO DO CHEFE] Maga conjura meteoros massivos que explodem o dobro da área com +120% dano!"}
+		{"id": "boss_meteor", "rarity": "EX", "title": "🌋 METEORO DA MAGA", "desc": "[ROUBO DO CHEFE] Maga conjura meteoros massivos que explodem o dobro da área com +120% dano!"},
+	{"id": "realm_of_death", "rarity": "EX", "title": "⚡ Reino da Morte", "desc": "[ROUBO DO CHEFE] Ao enfrentar um Chefe, drena 15% de todos os atributos dele e transfere para você durante o restante do confronto."}
 ]
 
 @onready var cards_container: HBoxContainer = find_child("CardsContainer", true, false) as HBoxContainer
@@ -120,11 +139,11 @@ func _roll_single_card(exclude_ids: Array[String]) -> Dictionary:
 	var target_pool: Array[Dictionary]
 
 	if roll < 0.65:
-		target_pool = POOL_R
+		target_pool = POOL_SR if demigod_forge_active else POOL_R
 	elif roll < 0.93:
-		target_pool = POOL_SR
+		target_pool = POOL_SSR if demigod_forge_active else POOL_SR
 	elif roll < 0.995:
-		target_pool = POOL_SSR
+		target_pool = POOL_EX if demigod_forge_active else POOL_SSR
 	else:
 		target_pool = POOL_EX
 

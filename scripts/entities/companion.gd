@@ -32,6 +32,7 @@ func _ready() -> void:
 	if enneagram_profile == null:
 		enneagram_profile = EnneagramData.create_preset(EnneagramData.Type.REFORMER)
 	super._ready()
+	EventBus.spell_casted.connect(func(): if has_meta("glyph_fury_unlocked") or (get_tree().get_first_node_in_group("player") and get_tree().get_first_node_in_group("player").has_meta("glyph_fury_unlocked")): _cast_timer *= 0.5)
 	if sprite != null and sprite.texture == null:
 		sprite.texture = load("res://assets/kenney_tiny_dungeon/Tiles/tile_0086.png")
 		sprite.modulate = Color(0.8, 0.9, 1.2, 1.0)
@@ -58,6 +59,8 @@ func _cast_spell() -> void:
 	var target_node: Node2D = _select_combat_target(sensing_radius)
 	if target_node == null:
 		return
+
+	EventBus.spell_casted.emit()
 
 	var base_dir := (target_node.global_position - global_position).normalized()
 	if base_dir == Vector2.ZERO:
