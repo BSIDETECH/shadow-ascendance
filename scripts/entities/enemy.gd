@@ -16,6 +16,7 @@ var _is_dying: bool = false
 var _stun_timer: float = 0.0
 var _slow_timer: float = 0.0
 var _slow_factor: float = 0.0
+var _slime_jump_timer: float = 0.0
 
 @onready var sprite: Sprite2D = $Sprite2D
 @onready var health_component: HealthComponent = $HealthComponent
@@ -65,7 +66,7 @@ func _setup_type_attributes() -> void:
 			max_health = 35.0
 			contact_damage = 10.0
 			xp_reward = 1
-			sprite.texture = load("res://assets/kenney_tiny_dungeon/Tiles/tile_0089.png")
+			sprite.texture = load("res://assets/kenney_tiny_dungeon/Tiles/tile_0087.png")
 			scale = Vector2.ONE
 			modulate = Color.WHITE
 		EnemyType.SLIME:
@@ -73,7 +74,7 @@ func _setup_type_attributes() -> void:
 			max_health = 25.0
 			contact_damage = 8.0
 			xp_reward = 1
-			sprite.texture = load("res://assets/kenney_tiny_dungeon/Tiles/tile_0093.png")
+			sprite.texture = load("res://assets/kenney_tiny_dungeon/Tiles/tile_0108.png")
 			scale = Vector2.ONE
 			modulate = Color(0.6, 1.0, 0.6)
 		EnemyType.BAT:
@@ -81,7 +82,7 @@ func _setup_type_attributes() -> void:
 			max_health = 16.0
 			contact_damage = 6.0
 			xp_reward = 1
-			sprite.texture = load("res://assets/kenney_tiny_dungeon/Tiles/tile_0092.png")
+			sprite.texture = load("res://assets/kenney_tiny_dungeon/Tiles/tile_0120.png")
 			scale = Vector2.ONE
 			modulate = Color(0.9, 0.5, 0.9)
 		EnemyType.DEMON_BOSS:
@@ -89,7 +90,7 @@ func _setup_type_attributes() -> void:
 			max_health = 320.0
 			contact_damage = 25.0
 			xp_reward = 15
-			sprite.texture = load("res://assets/kenney_tiny_dungeon/Tiles/tile_0108.png")
+			sprite.texture = load("res://assets/kenney_tiny_dungeon/Tiles/tile_0111.png")
 			scale = Vector2(1.8, 1.8)
 			modulate = Color(1.0, 0.4, 0.4)
 		EnemyType.RANGED:
@@ -97,7 +98,7 @@ func _setup_type_attributes() -> void:
 			max_health = 22.0
 			contact_damage = 4.0
 			xp_reward = 1
-			sprite.texture = load("res://assets/kenney_tiny_dungeon/Tiles/tile_0088.png")
+			sprite.texture = load("res://assets/kenney_tiny_dungeon/Tiles/tile_0093.png")
 			scale = Vector2.ONE
 			modulate = Color.WHITE
 
@@ -155,7 +156,20 @@ func _physics_process(delta: float) -> void:
 		return
 
 	var direction := (_target.global_position - global_position).normalized()
-	velocity = direction * _current_speed
+
+	if enemy_type == EnemyType.SLIME:
+		_slime_jump_timer -= delta
+		if _slime_jump_timer <= 0.0:
+			# Aplicamos o impulso diretamente na variável _knockback_velocity
+			# O bloco de código que decai o knockback fará a gosma pular
+			_knockback_velocity = direction * (_current_speed * 4.0)
+			_slime_jump_timer = 1.5
+
+		# A gosma não se move de forma linear
+		velocity = Vector2.ZERO
+	else:
+		velocity = direction * _current_speed
+
 	move_and_slide()
 
 	# Flip sprite based on movement
