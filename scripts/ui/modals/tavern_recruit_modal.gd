@@ -74,6 +74,7 @@ var _current_rumor_idx: int = 0
 @onready var status_label: Label = find_child("StatusLabel", true, false) as Label
 @onready var party_status_label: Label = find_child("PartyCountLabel", true, false) as Label
 @onready var close_button: Button = find_child("CloseButton", true, false) as Button
+@onready var gold_label: Label = find_child("GoldLabel", true, false) as Label
 
 func _ready() -> void:
 	visible = false
@@ -89,6 +90,7 @@ func open() -> void:
 	_update_rumor_display()
 	_render_candidates()
 	_update_party_count()
+	_update_gold_display()
 	if status_label != null:
 		status_label.text = "Barnaby: \"Tome um trago e escolha com quem você quer sangrar nas ruínas.\""
 
@@ -111,6 +113,15 @@ func cycle_rumor() -> String:
 func _update_rumor_display() -> void:
 	if rumor_label != null and TACTICAL_RUMORS.size() > 0:
 		rumor_label.text = TACTICAL_RUMORS[_current_rumor_idx]
+
+func _update_gold_display() -> void:
+	if gold_label == null:
+		return
+	var tree := get_tree()
+	if tree != null:
+		var gm: Node = tree.root.get_node_or_null("GameManager")
+		if gm != null and gm.has_method("get_gold"):
+			gold_label.text = "Ouro: %d" % gm.get_gold()
 
 func _update_party_count() -> void:
 	var current_count := 0
@@ -241,6 +252,7 @@ func hire_candidate(candidate_id: String) -> bool:
 				mercenary_hired.emit(candidate)
 				_render_candidates()
 				_update_party_count()
+				_update_gold_display()
 				return true
 			else:
 				if status_label != null:
