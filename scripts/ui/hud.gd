@@ -3,6 +3,8 @@ extends CanvasLayer
 
 @onready var hp_bar: ProgressBar = $Control/Margin/VBox/HPContainer/HPBar
 @onready var hp_label: Label = $Control/Margin/VBox/HPContainer/HPLabel
+@onready var mana_bar: ProgressBar = $Control/Margin/VBox/ManaContainer/ManaBar
+@onready var mana_label: Label = $Control/Margin/VBox/ManaContainer/ManaLabel
 @onready var xp_bar: ProgressBar = $Control/Margin/VBox/XPContainer/XPBar
 @onready var xp_label: Label = $Control/Margin/VBox/XPContainer/XPLabel
 @onready var kills_label: Label = $Control/Margin/VBox/KillsLabel
@@ -45,6 +47,9 @@ func _ready() -> void:
 	if eb != null:
 		if eb.has_signal("player_health_changed"):
 			eb.player_health_changed.connect(update_health)
+
+		if eb.has_signal("player_mana_changed"):
+			eb.player_mana_changed.connect(update_mana)
 
 		if eb.has_signal("leadership_charges_changed"):
 			eb.leadership_charges_changed.connect(update_leadership_charges)
@@ -102,6 +107,13 @@ func update_health(current: float, max_hp: float) -> void:
 		hp_bar.value = current
 	if hp_label != null:
 		hp_label.text = "HP: %d/%d" % [int(current), int(max_hp)]
+
+func update_mana(current: float, max_mana: float) -> void:
+	if mana_bar != null:
+		mana_bar.max_value = max_mana
+		mana_bar.value = current
+	if mana_label != null:
+		mana_label.text = "Mana: %d/%d" % [int(current), int(max_mana)]
 
 func update_xp(current_xp: int, next_xp: int, level: int) -> void:
 	if xp_bar != null:
