@@ -47,6 +47,9 @@ func _ready() -> void:
 		if eb.has_signal("player_health_changed"):
 			eb.player_health_changed.connect(update_health)
 
+		if eb.has_signal("player_shield_changed"):
+			eb.player_shield_changed.connect(update_shield)
+
 		if eb.has_signal("leadership_charges_changed"):
 			eb.leadership_charges_changed.connect(update_leadership_charges)
 
@@ -154,6 +157,12 @@ func update_health(current: float, max_hp: float) -> void:
 		hp_bar.value = current
 	if hp_label != null:
 		hp_label.text = "HP: %d/%d" % [int(current), int(max_hp)]
+
+func update_shield(current: float, max_val: float) -> void:
+	if shield_bar != null:
+		shield_bar.max_value = max_val
+		shield_bar.value = current
+		shield_bar.visible = current > 0
 
 func update_xp(current_xp: int, next_xp: int, level: int) -> void:
 	if xp_bar != null:

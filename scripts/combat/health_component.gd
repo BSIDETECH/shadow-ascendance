@@ -11,6 +11,7 @@ signal died()
 signal healed(amount: float)
 signal invincibility_started()
 signal invincibility_ended()
+signal shield_changed(current_shield: float, max_shield: float)
 
 @export var max_health: float = 100.0:
 	set(val):
@@ -28,6 +29,13 @@ signal invincibility_ended()
 @export var is_invincible: bool = false
 @export var disable_collision_on_death: bool = true
 
+@export var shield_health: float = 0.0:
+	set(val):
+		shield_health = maxf(0.0, val)
+		shield_changed.emit(shield_health, max_shield)
+@export var max_shield: float = 0.0
+
+var _shield_decay_rate: float = 0.0
 var _i_frame_timer: float = 0.0
 
 func _ready() -> void:
@@ -37,6 +45,9 @@ func _physics_process(delta: float) -> void:
 	tick(delta)
 
 func tick(delta: float) -> void:
+	if shield_health > 0.0 and _shield_decay_rate > 0.0:
+		shield_health = maxf(0.0, shield_health - (_shield_decay_rate * delta))
+
 	if _i_frame_timer > 0.0:
 		_i_frame_timer -= delta
 		if _i_frame_timer <= 0.0:
@@ -45,6 +56,15 @@ func tick(delta: float) -> void:
 
 func is_currently_invincible() -> bool:
 	return is_invincible or _i_frame_timer > 0.0
+
+func apply_shield(amount: float, duration: float = 0.0) -> void:
+	max_shield = amount
+	shield_health = amount
+	if duration > 0.0:
+		_shield_decay_rate = amount / duration
+	else:
+		_shield_decay_rate = 0.0
+	shield_changed.emit(shield_health, max_shield)
 
 func is_alive() -> bool:
 	return current_health > 0.0

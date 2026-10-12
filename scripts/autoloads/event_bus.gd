@@ -57,6 +57,9 @@ func emit_wave_completed(wave_num: int) -> void:
 func emit_player_health_changed(current: float, max_hp: float) -> void:
 	player_health_changed.emit(current, max_hp)
 
+func emit_player_shield_changed(current: float, max_shield: float) -> void:
+	player_shield_changed.emit(current, max_shield)
+
 func emit_player_dashed(dir: Vector2) -> void:
 	player_dashed.emit(dir)
 
