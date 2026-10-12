@@ -9,6 +9,7 @@ signal scene_transition_started(target_scene: String)
 signal scene_transition_finished(target_scene: String)
 signal party_roster_changed(new_roster: Array[Dictionary])
 signal quest_selected(rank: String)
+signal potions_changed(health_count: int, shield_count: int)
 
 const FADE_DURATION: float = 0.35
 const MAX_PARTY_SIZE: int = 3
@@ -21,11 +22,8 @@ var selected_quest_rank: String = "F"
 var total_completed_runs: int = 0
 var is_transitioning: bool = false
 var player_gold: int = 0
-
-var blacksmith_bonus_damage: float = 0.0
-var blacksmith_bonus_health: float = 0.0
-var blacksmith_bonus_speed: float = 0.0
-
+var health_potions: int = 0
+var shield_potions: int = 0
 
 # Difficulty Balancing
 var enemy_health_mult: float = 1.40
@@ -213,15 +211,6 @@ func trigger_ending(ending_type: String = "", metrics: Dictionary = {}) -> void:
 
 # --- Economy System ---
 
-
-func buy_blacksmith_upgrade(type: String, value: float) -> void:
-	if type == "damage":
-		blacksmith_bonus_damage += value
-	elif type == "health":
-		blacksmith_bonus_health += value
-	elif type == "speed":
-		blacksmith_bonus_speed += value
-
 func add_gold(amount: int) -> void:
 	player_gold += amount
 	if EventBus.has_signal("gold_changed"):
@@ -237,3 +226,26 @@ func spend_gold(amount: int) -> bool:
 
 func get_gold() -> int:
 	return player_gold
+
+# --- Potion System ---
+func add_health_potion() -> void:
+	health_potions += 1
+	potions_changed.emit(health_potions, shield_potions)
+
+func add_shield_potion() -> void:
+	shield_potions += 1
+	potions_changed.emit(health_potions, shield_potions)
+
+func consume_health_potion() -> bool:
+	if health_potions > 0:
+		health_potions -= 1
+		potions_changed.emit(health_potions, shield_potions)
+		return true
+	return false
+
+func consume_shield_potion() -> bool:
+	if shield_potions > 0:
+		shield_potions -= 1
+		potions_changed.emit(health_potions, shield_potions)
+		return true
+	return false

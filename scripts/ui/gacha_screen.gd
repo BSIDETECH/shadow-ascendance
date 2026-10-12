@@ -16,7 +16,7 @@ const RARITY_COLORS := {
 const STARTER_CHEAT_CARDS: Array[Dictionary] = [
 	{"id": "ex_abyss", "rarity": "EX", "title": "👑 AUTORIDADE DO MONARCA", "desc": "[CHEAT] A cada 6 abates, detona uma Explosão Abissal devastadora em toda a tela!"},
 	{"id": "ex_god", "rarity": "EX", "title": "⚡ DÁDIVA DO DESTINO", "desc": "[CHEAT] Dano DOBRADO (+100%) e Recarga do Dash reduzida em 60%!"},
-	{"id": "ex_mage_wrath", "rarity": "EX", "title": "🔥 CATACLISMO ELEMENTAL", "desc": "[CHEAT] A Maga dispara 3 bolas de fogo por ataque com dano dobrado (+100%)!", "req_class": "mage"},
+	{"id": "ex_mage_wrath", "rarity": "EX", "title": "🔥 CATACLISMO ELEMENTAL", "desc": "[CHEAT] A Maga dispara 3 bolas de fogo por ataque com dano dobrado (+100%)!"},
 	{"id": "ssr_vampire", "rarity": "SSR", "title": "🩸 CEIFADOR CARMESIM", "desc": "[ARQUÉTIPO] +4 de Vida roubada por monstro abatido e +40% cadência de corte!"},
 		{"id": "ssr_storm", "rarity": "SSR", "title": "🌪️ TEMPESTADE DE LÂMINAS", "desc": "[ARQUÉTIPO] +75% Velocidade de Corte e +35% Velocidade de Movimento!"},
 	{"id": "glyph_fury", "rarity": "EX", "title": "👑 Fúria dos Glifos", "desc": "Todo feitiço conjurado reseta 50% do tempo de recarga das habilidades dos companheiros."},
@@ -36,12 +36,12 @@ const POOL_R: Array[Dictionary] = [
 ]
 
 const POOL_SR: Array[Dictionary] = [
-	{"id": "mage_multi", "rarity": "SR", "title": "Eco Arcano da Maga", "desc": "A Maga dispara +1 Projétil por ataque", "req_class": "mage"},
+	{"id": "mage_multi", "rarity": "SR", "title": "Eco Arcano da Maga", "desc": "A Maga dispara +1 Projétil por ataque"},
 	{"id": "dash_cdr", "rarity": "SR", "title": "Reflexo Fantasma", "desc": "-35% Tempo de Recarga do Dash"},
 	{"id": "heal_full", "rarity": "SR", "title": "Vitalidade Monarca", "desc": "+40 Vida Máxima e Cura Total"},
-		{"id": "mage_haste", "rarity": "SR", "title": "Aceleração Astral", "desc": "+40% Cadência de Feitiços da Maga", "req_class": "mage"},
+		{"id": "mage_haste", "rarity": "SR", "title": "Aceleração Astral", "desc": "+40% Cadência de Feitiços da Maga"},
 	{"id": "spin_attack", "rarity": "SR", "title": "Redemoinho", "desc": "A cada 8s, o jogador gira por 2s, causando dano de corte contínuo em área e ignorando desacelerações."},
-	{"id": "glacial_prison", "rarity": "SR", "title": "Prisão Glacial", "desc": "Inimigos atingidos pela Maga sofrem congelamento/enraizamento em área por 1.5s.", "req_class": "mage"},
+	{"id": "glacial_prison", "rarity": "SR", "title": "Prisão Glacial", "desc": "Inimigos atingidos pela Maga sofrem congelamento/enraizamento em área por 1.5s."},
 	{"id": "insatiable_hunger", "rarity": "SR", "title": "Fome Insaciável", "desc": "Quando com menos de 50% de vida, o jogador e os companheiros ganham +50% de velocidade de ataque e roubo de vida triplicado."},
 	{"id": "solar_flare", "rarity": "SR", "title": "Pilar Solar", "desc": "Ataques de aliados marcam os inimigos; seu próximo golpe consome a marca para dano mágico extra em área."}
 ]
@@ -49,7 +49,7 @@ const POOL_SR: Array[Dictionary] = [
 const POOL_SSR: Array[Dictionary] = [
 	{"id": "lifesteal", "rarity": "SSR", "title": "Dreno Sanguíneo", "desc": "+2.5 de Vida roubada por abate"},
 	{"id": "atk_spd", "rarity": "SSR", "title": "Frenesi do Abismo", "desc": "+50% Velocidade de Corte de Sombras"},
-		{"id": "mage_dmg", "rarity": "SSR", "title": "Maestria Elemental", "desc": "+60% Dano da Maga", "req_class": "mage"},
+		{"id": "mage_dmg", "rarity": "SSR", "title": "Maestria Elemental", "desc": "+60% Dano da Maga"},
 	{"id": "cosmic_rupture", "rarity": "SSR", "title": "Ruptura Cósmica", "desc": "A cada 20 monstros abatidos, conjura um raio de luz concentrado atravessando o mapa na direção do cursor."},
 	{"id": "void_feast", "rarity": "SSR", "title": "Banquete do Vazio", "desc": "Ao abater elites ou chefes, você ganha permanentemente +20 de Vida Máxima e +5% de tamanho/dano (acumula até 10 vezes)."},
 	{"id": "noxian_guillotine", "rarity": "SSR", "title": "Guilhotina de Noxus", "desc": "Inimigos abaixo de 30% de vida sofrem execução instantânea. Se executados, causa uma explosão de medo e reinicia o efeito imediatamente."},
@@ -67,7 +67,7 @@ const POOL_EX: Array[Dictionary] = [
 const BOSS_THEFT_CARDS: Array[Dictionary] = [
 	{"id": "boss_demon_heart", "rarity": "EX", "title": "👹 CORAÇÃO TITÂNICO", "desc": "[ROUBO DO CHEFE] +100 Vida Máxima, Cura Total e emite pulsos de fogo devastadores a cada 3s!"},
 	{"id": "boss_executioner", "rarity": "EX", "title": "💀 CARNICEIRO DO ABISMO", "desc": "[ROUBO DO CHEFE] Golpes têm 20% de chance de causar Dano Triplo fatal e +40% de dano base!"},
-		{"id": "boss_meteor", "rarity": "EX", "title": "🌋 METEORO DA MAGA", "desc": "[ROUBO DO CHEFE] Maga conjura meteoros massivos que explodem o dobro da área com +120% dano!", "req_class": "mage"},
+		{"id": "boss_meteor", "rarity": "EX", "title": "🌋 METEORO DA MAGA", "desc": "[ROUBO DO CHEFE] Maga conjura meteoros massivos que explodem o dobro da área com +120% dano!"},
 	{"id": "realm_of_death", "rarity": "EX", "title": "⚡ Reino da Morte", "desc": "[ROUBO DO CHEFE] Ao enfrentar um Chefe, drena 15% de todos os atributos dele e transfere para você durante o restante do confronto."}
 ]
 
@@ -112,25 +112,15 @@ func open_boss_theft(boss_name: String) -> void:
 
 	title_label.text = "👑 ALMA DO CHEFE DEVORADA 👑"
 	subtitle_label.text = "O %s tombou! Absorva sua essência e roube um poder ancestral supremo:" % boss_name
-	var pool: Array[Dictionary] = []
-	for c in BOSS_THEFT_CARDS:
-		if _is_card_valid(c):
-			pool.append(c.duplicate())
+
+	var pool := BOSS_THEFT_CARDS.duplicate()
 	pool.shuffle()
 	for card_data in pool:
 		_create_card_button(card_data)
 
 func _pick_starter_cheat_cards() -> Array[Dictionary]:
-	var pool: Array[Dictionary] = []
-	for c in STARTER_CHEAT_CARDS:
-		if _is_card_valid(c):
-			pool.append(c.duplicate())
+	var pool := STARTER_CHEAT_CARDS.duplicate()
 	pool.shuffle()
-
-	# Fallback just in case
-	while pool.size() < 3:
-		pool.append(POOL_R[0])
-
 	return [pool[0], pool[1], pool[2]]
 
 func _pick_weighted_cards() -> Array[Dictionary]:
@@ -156,9 +146,10 @@ func _roll_single_card(exclude_ids: Array[String]) -> Dictionary:
 		target_pool = POOL_EX if demigod_forge_active else POOL_SSR
 	else:
 		target_pool = POOL_EX
+
 	var available: Array[Dictionary] = []
 	for c in target_pool:
-		if not exclude_ids.has(c.id) and _is_card_valid(c):
+		if not exclude_ids.has(c.id):
 			available.append(c)
 
 	if available.is_empty():
@@ -166,20 +157,6 @@ func _roll_single_card(exclude_ids: Array[String]) -> Dictionary:
 
 	available.shuffle()
 	return available[0]
-
-
-func _is_card_valid(card: Dictionary) -> bool:
-	if not card.has("req_class"):
-		return true
-
-	var req_class = card["req_class"]
-	var gm = get_tree().root.get_node_or_null("GameManager")
-	if gm != null and gm.has_method("get_active_party_roster"):
-		var roster = gm.get_active_party_roster()
-		for member in roster:
-			if member.get("class_type") == req_class:
-				return true
-	return false
 
 func _create_card_button(card: Dictionary) -> void:
 	var btn := Button.new()

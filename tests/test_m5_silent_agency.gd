@@ -364,7 +364,6 @@ func test_ending_screen_ui_component(runner: SceneTree) -> void:
 		"rescues_performed": 1,
 		"allies_fallen": 0,
 		"reckless_orders_issued": 0,
-		"monsters_defeated": 10,
 		"agency_score": 65
 	}
 	ending_inst.display_ending("GOOD_ENDING", good_metrics)
@@ -384,7 +383,6 @@ func test_ending_screen_ui_component(runner: SceneTree) -> void:
 		"rescues_performed": 0,
 		"allies_fallen": 3,
 		"reckless_orders_issued": 2,
-		"monsters_defeated": 2,
 		"agency_score": -140
 	}
 	ending_inst.display_ending("BAD_ENDING", bad_metrics)

@@ -1,15 +1,15 @@
 [gd_scene load_steps=2 format=3 uid="uid://tm3tavernmodal001"]
 
-[ext_resource type="Script" path="res://scripts/ui/modals/armory_modal.gd" id="1_armory"]
+[ext_resource type="Script" path="res://scripts/ui/modals/shop_modal.gd" id="1_shop"]
 
-[node name="ArmoryModal" type="Control"]
+[node name="ShopModal" type="Control"]
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-script = ExtResource("1_armory")
+script = ExtResource("1_shop")
 
 [node name="Backdrop" type="ColorRect" parent="."]
 layout_mode = 1
@@ -55,7 +55,7 @@ layout_mode = 2
 size_flags_horizontal = 3
 theme_override_colors/font_color = Color(1, 0.75, 0.3, 1)
 theme_override_font_sizes/font_size = 13
-text = "Forja de Gromm — Melhorias de Equipamento"
+text = "Loja de Itens do Mercador"
 
 [node name="CloseButton" type="Button" parent="PanelContainer/MarginContainer/VBoxContainer/Header"]
 layout_mode = 2
@@ -65,23 +65,6 @@ text = " X "
 [node name="HSeparator" type="HSeparator" parent="PanelContainer/MarginContainer/VBoxContainer"]
 layout_mode = 2
 
-[node name="UpgradesHBox" type="HBoxContainer" parent="PanelContainer/MarginContainer/VBoxContainer"]
+[node name="RosterContainer" type="VBoxContainer" parent="PanelContainer/MarginContainer/VBoxContainer"]
 layout_mode = 2
 size_flags_vertical = 3
-theme_override_constants/separation = 8
-
-[node name="Footer" type="HBoxContainer" parent="PanelContainer/MarginContainer/VBoxContainer"]
-layout_mode = 2
-
-[node name="StatusLabel" type="Label" parent="PanelContainer/MarginContainer/VBoxContainer/Footer"]
-layout_mode = 2
-size_flags_horizontal = 3
-theme_override_colors/font_color = Color(0.8, 0.8, 0.8, 1)
-theme_override_font_sizes/font_size = 10
-text = "Compre melhorias para sua arma e armadura."
-
-[node name="GoldLabel" type="Label" parent="PanelContainer/MarginContainer/VBoxContainer/Footer"]
-layout_mode = 2
-theme_override_colors/font_color = Color(0.4, 0.9, 0.5, 1)
-theme_override_font_sizes/font_size = 10
-text = "Ouro: 0"

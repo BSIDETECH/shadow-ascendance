@@ -48,14 +48,6 @@ corner_radius_top_right = 3
 corner_radius_bottom_right = 3
 corner_radius_bottom_left = 3
 
-
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_mana_fill"]
-bg_color = Color(0.1, 0.4, 0.9, 1)
-corner_radius_top_left = 4
-corner_radius_top_right = 4
-corner_radius_bottom_right = 4
-corner_radius_bottom_left = 4
-
 [node name="HUD" type="CanvasLayer"]
 script = ExtResource("1_hud")
 
@@ -110,27 +102,6 @@ show_percentage = false
 layout_mode = 2
 theme_override_font_sizes/font_size = 11
 text = "HP: 100/100"
-
-
-[node name="ManaContainer" type="HBoxContainer" parent="Control/Margin/VBox"]
-layout_mode = 2
-theme_override_constants/separation = 6
-
-[node name="ManaBar" type="ProgressBar" parent="Control/Margin/VBox/ManaContainer"]
-custom_minimum_size = Vector2(140, 10)
-layout_mode = 2
-size_flags_vertical = 4
-theme_override_styles/background = SubResource("StyleBoxFlat_hp_bg")
-theme_override_styles/fill = SubResource("StyleBoxFlat_mana_fill")
-max_value = 100.0
-value = 100.0
-show_percentage = false
-
-[node name="ManaLabel" type="Label" parent="Control/Margin/VBox/ManaContainer"]
-layout_mode = 2
-theme_override_colors/font_color = Color(0.5, 0.7, 1, 1)
-theme_override_font_sizes/font_size = 10
-text = "Mana: 100/100"
 
 [node name="XPContainer" type="HBoxContainer" parent="Control/Margin/VBox"]
 layout_mode = 2

@@ -30,10 +30,6 @@ var abandonment_ticks: int = 0:
 	set(val):
 		abandonment_ticks = maxi(0, val)
 
-var monsters_defeated: int = 0:
-	set(val):
-		monsters_defeated = maxi(0, val)
-
 var agency_score: int:
 	get:
 		return calculate_agency_score()
@@ -57,8 +53,6 @@ func _connect_event_bus() -> void:
 		eb.ally_died.connect(_on_ally_died)
 	if eb.has_signal("leadership_order_issued") and not eb.leadership_order_issued.is_connected(_on_leadership_order_issued):
 		eb.leadership_order_issued.connect(_on_leadership_order_issued)
-	if eb.has_signal("enemy_died") and not eb.enemy_died.is_connected(_on_enemy_died):
-		eb.enemy_died.connect(_on_enemy_died)
 
 func _get_event_bus() -> Node:
 	var tree := get_tree()
@@ -115,7 +109,6 @@ func get_metrics() -> Dictionary:
 		"rescues_performed": rescues_performed,
 		"reckless_orders_issued": reckless_orders_issued,
 		"abandonment_ticks": abandonment_ticks,
-		"monsters_defeated": monsters_defeated,
 		"agency_score": calculate_agency_score(),
 		"ending": evaluate_ending()
 	}
@@ -127,7 +120,6 @@ func reset_metrics() -> void:
 	rescues_performed = 0
 	reckless_orders_issued = 0
 	abandonment_ticks = 0
-	monsters_defeated = 0
 	_abandonment_timer = 0.0
 
 # --- Event Handlers & Signal Listeners ---
@@ -137,9 +129,6 @@ func _on_companion_rescued(_companion: Node = null) -> void:
 
 func _on_ally_died(_ally_node: Node = null) -> void:
 	record_ally_death(_ally_node)
-
-func _on_enemy_died(_pos: Vector2, _xp: int) -> void:
-	monsters_defeated += 1
 
 func _get_companion_hp_ratio(comp: Node) -> float:
 	if comp == null or not is_instance_valid(comp):

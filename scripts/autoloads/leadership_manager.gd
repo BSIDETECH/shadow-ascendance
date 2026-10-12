@@ -10,8 +10,8 @@ enum LeadershipOrder {
 	HELP = 3
 }
 
-const MAX_CHARGES: int = 1
-const COOLDOWN_TIME: float = 5.0
+const MAX_CHARGES: int = 3
+const KILLS_PER_RECHARGE: int = 10
 const INPUT_DEBOUNCE_TIME: float = 0.15
 
 var current_charges: int = MAX_CHARGES
@@ -23,9 +23,9 @@ var charges: int:
 		var eb := _get_event_bus()
 		if eb != null:
 			eb.emit_leadership_charges_changed(current_charges, max_charges)
+var kills_towards_recharge: int = 0
 var total_orders_issued: int = 0
 
-var _cooldown_timer: float = 0.0
 var _debounce_timer: float = 0.0
 var is_enabled: bool = true
 
@@ -46,6 +46,9 @@ func _get_event_bus() -> Node:
 
 func _ready() -> void:
 	_ensure_input_mappings()
+	var eb := _get_event_bus()
+	if eb != null and not eb.enemy_died.is_connected(_on_enemy_died):
+		eb.enemy_died.connect(_on_enemy_died)
 	call_deferred("_broadcast_initial_state")
 
 func _broadcast_initial_state() -> void:
@@ -56,23 +59,6 @@ func _broadcast_initial_state() -> void:
 func _process(delta: float) -> void:
 	if _debounce_timer > 0.0:
 		_debounce_timer = maxf(0.0, _debounce_timer - delta)
-
-	if current_charges < max_charges:
-		if _cooldown_timer <= 0.0:
-			_cooldown_timer = COOLDOWN_TIME
-
-		_cooldown_timer -= delta
-		if _cooldown_timer <= 0.0:
-			current_charges += 1
-			_cooldown_timer = 0.0
-			var eb := _get_event_bus()
-			if eb != null:
-				eb.emit_leadership_charges_changed(current_charges, max_charges)
-
-func get_cooldown_time_left() -> float:
-	if current_charges >= max_charges:
-		return 0.0
-	return maxf(0.0, _cooldown_timer)
 
 func _unhandled_input(event: InputEvent) -> void:
 	if not is_enabled:
@@ -159,6 +145,16 @@ func get_player_node() -> Node2D:
 			return players[0] as Node2D
 	return null
 
+func _on_enemy_died(_pos: Vector2, _xp: int) -> void:
+	kills_towards_recharge += 1
+	if kills_towards_recharge >= KILLS_PER_RECHARGE:
+		kills_towards_recharge -= KILLS_PER_RECHARGE
+		if current_charges < max_charges:
+			current_charges += 1
+			var eb := _get_event_bus()
+			if eb != null:
+				eb.emit_leadership_charges_changed(current_charges, max_charges)
+
 func add_charge(amount: int = 1) -> void:
 	current_charges = clampi(current_charges + amount, 0, max_charges)
 	var eb := _get_event_bus()
@@ -178,7 +174,7 @@ func consume_charge(amount: int = 1) -> bool:
 	return spend_charge(amount)
 
 func notify_kill() -> void:
-	pass
+	_on_enemy_died(Vector2.ZERO, 0)
 
 func can_issue_order_debounce() -> bool:
 	if _debounce_timer > 0.0:
@@ -188,7 +184,7 @@ func can_issue_order_debounce() -> bool:
 
 func reset_charges() -> void:
 	current_charges = max_charges
-	_cooldown_timer = 0.0
+	kills_towards_recharge = 0
 	_debounce_timer = 0.0
 	var eb := _get_event_bus()
 	if eb != null:

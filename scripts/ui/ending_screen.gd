@@ -13,7 +13,6 @@ signal return_to_hub_requested()
 @onready var rescue_val_label: Label = find_child("RescueVal", true, false) as Label
 @onready var fallen_val_label: Label = find_child("FallenVal", true, false) as Label
 @onready var reckless_val_label: Label = find_child("RecklessVal", true, false) as Label
-@onready var monsters_val_label: Label = find_child("MonstersVal", true, false) as Label
 @onready var score_val_label: Label = find_child("ScoreVal", true, false) as Label
 @onready var return_button: Button = find_child("ReturnButton", true, false) as Button
 
@@ -63,8 +62,6 @@ func _ensure_references() -> void:
 		fallen_val_label = find_child("FallenVal", true, false) as Label
 	if reckless_val_label == null:
 		reckless_val_label = find_child("RecklessVal", true, false) as Label
-	if monsters_val_label == null:
-		monsters_val_label = find_child("MonstersVal", true, false) as Label
 	if score_val_label == null:
 		score_val_label = find_child("ScoreVal", true, false) as Label
 	if return_button == null:
@@ -95,7 +92,6 @@ func display_ending(p_ending_type: String, p_metrics: Dictionary = {}) -> void:
 	var rescues: int = current_metrics.get("rescues_performed", 0)
 	var fallen: int = current_metrics.get("allies_fallen", 0)
 	var reckless: int = current_metrics.get("reckless_orders_issued", 0)
-	var monsters: int = current_metrics.get("monsters_defeated", 0)
 	var score: int = current_metrics.get("agency_score", 0)
 
 	if surv_val_label != null:
@@ -106,8 +102,6 @@ func display_ending(p_ending_type: String, p_metrics: Dictionary = {}) -> void:
 		fallen_val_label.text = "%d" % fallen
 	if reckless_val_label != null:
 		reckless_val_label.text = "%d" % reckless
-	if monsters_val_label != null:
-		monsters_val_label.text = "%d" % monsters
 	if score_val_label != null:
 		score_val_label.text = "%d" % score
 
