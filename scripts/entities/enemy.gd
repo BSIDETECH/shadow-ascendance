@@ -124,6 +124,16 @@ func _find_target() -> void:
 	if players.size() > 0:
 		_target = players[0] as Node2D
 
+func _has_line_of_sight(target_node: Node2D) -> bool:
+	if not is_inside_tree():
+		return false
+	var space_state = get_world_2d().direct_space_state
+	var query = PhysicsRayQueryParameters2D.create(global_position, target_node.global_position)
+	query.collision_mask = 1 # World layer
+	query.exclude = [self]
+	var result = space_state.intersect_ray(query)
+	return result.is_empty()
+
 func _physics_process(delta: float) -> void:
 	if _is_dying:
 		return

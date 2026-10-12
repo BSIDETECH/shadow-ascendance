@@ -1,5 +1,6 @@
 [gd_scene load_steps=15 format=3 uid="uid://c6a8arena001"]
 
+[ext_resource type="PackedScene" path="res://scenes/env/tree.tscn" id="tree_scene"]
 [ext_resource type="Script" path="res://scripts/arena/arena.gd" id="1_arena"]
 [ext_resource type="Texture2D" path="res://assets/kenney_tiny_dungeon/Tiles/tile_0037.png" id="2_floor"]
 [ext_resource type="Texture2D" path="res://assets/kenney_tiny_dungeon/Tiles/tile_0038.png" id="3_floor_cracked"]
@@ -23,6 +24,7 @@ size = Vector2(100, 1000)
 size = Vector2(100, 1000)
 
 [node name="Arena" type="Node2D"]
+y_sort_enabled = true
 script = ExtResource("1_arena")
 
 [node name="Floor" type="TextureRect" parent="."]
@@ -282,6 +284,29 @@ texture = ExtResource("6_brazier")
 modulate = Color(1.2, 0.9, 0.6, 1)
 position = Vector2(570, 370)
 texture = ExtResource("6_brazier")
+
+
+[node name="ForestTrees" type="Node2D" parent="."]
+y_sort_enabled = true
+
+[node name="Tree1" parent="ForestTrees" instance=ExtResource("tree_scene")]
+position = Vector2(-300, -200)
+
+[node name="Tree2" parent="ForestTrees" instance=ExtResource("tree_scene")]
+position = Vector2(250, -250)
+
+[node name="Tree3" parent="ForestTrees" instance=ExtResource("tree_scene")]
+position = Vector2(-400, 150)
+
+[node name="Tree4" parent="ForestTrees" instance=ExtResource("tree_scene")]
+position = Vector2(350, 200)
+
+[node name="Tree5" parent="ForestTrees" instance=ExtResource("tree_scene")]
+position = Vector2(100, -100)
+
+[node name="Tree6" parent="ForestTrees" instance=ExtResource("tree_scene")]
+position = Vector2(-150, 250)
+
 
 [node name="ArenaBoundaries" type="StaticBody2D" parent="."]
 collision_mask = 0
