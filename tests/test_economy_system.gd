@@ -4,7 +4,7 @@ extends Node
 ## Testes unitários para validar a Economy System.
 
 func run_all(runner: SceneTree) -> void:
-	runner.call("print", "\\n--- [ECONOMY SYSTEM TESTS] ---")
+	print("\n--- [ECONOMY SYSTEM TESTS] ---")
 	test_initial_gold(runner)
 	test_add_spend_gold(runner)
 	test_recruit_insufficient_funds(runner)

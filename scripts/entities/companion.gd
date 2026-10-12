@@ -32,7 +32,11 @@ func _ready() -> void:
 	if enneagram_profile == null:
 		enneagram_profile = EnneagramData.create_preset(EnneagramData.Type.REFORMER)
 	super._ready()
-	EventBus.spell_casted.connect(func(): if has_meta("glyph_fury_unlocked") or (get_tree().get_first_node_in_group("player") and get_tree().get_first_node_in_group("player").has_meta("glyph_fury_unlocked")): _cast_timer *= 0.5)
+	EventBus.spell_casted.connect(func():
+		var player_node := get_tree().get_first_node_in_group("player")
+		if has_meta("glyph_fury_unlocked") or (player_node != null and player_node.has_meta("glyph_fury_unlocked")):
+			_cast_timer *= 0.5
+	)
 	if sprite != null and sprite.texture == null:
 		sprite.texture = load("res://assets/kenney_tiny_dungeon/Tiles/tile_0086.png")
 		sprite.modulate = Color(0.8, 0.9, 1.2, 1.0)

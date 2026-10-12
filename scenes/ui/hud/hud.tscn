@@ -230,5 +230,11 @@ theme_override_font_sizes/font_size = 9
 text = "WASD: Mover | Espaço: Dash | Mouse: Mirar & Cortar"
 horizontal_alignment = 2
 
+[node name="SettingsButton" type="Button" parent="Control/Margin/TopRight"]
+layout_mode = 2
+size_flags_horizontal = 8
+theme_override_font_sizes/font_size = 9
+text = " ⚙ Som & Pausa (ESC) "
+
 [node name="DialogueFeed" parent="Control" instance=ExtResource("2_feed")]
 layout_mode = 1

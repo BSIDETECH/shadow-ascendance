@@ -88,10 +88,11 @@ func issue_order(order_type: int, override_target: Vector2 = Vector2.INF) -> boo
 	if _debounce_timer > 0.0:
 		return false
 
+	var eb := _get_event_bus()
+
 	# 2. Charge check
 	if current_charges <= 0:
 		_debounce_timer = INPUT_DEBOUNCE_TIME
-		var eb := _get_event_bus()
 		if eb != null:
 			eb.emit_leadership_order_failed("Sem cargas de liderança disponíveis!")
 		return false
@@ -107,7 +108,6 @@ func issue_order(order_type: int, override_target: Vector2 = Vector2.INF) -> boo
 		target_pos = get_order_target_position(order_type)
 
 	# 5. Emit signals
-	var eb := _get_event_bus()
 	if eb != null:
 		eb.emit_leadership_charges_changed(current_charges, max_charges)
 		eb.emit_leadership_order_issued(order_type, target_pos)

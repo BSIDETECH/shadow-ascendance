@@ -15,6 +15,7 @@ signal wave_started(wave_number: int)
 signal wave_completed(wave_number: int)
 signal player_health_changed(current: float, max_health: float)
 signal player_shield_changed(current: float, max_shield: float)
+signal player_mana_changed(current: float, max_mana: float)
 signal player_dashed(direction: Vector2)
 
 # Leadership & Companion Signals (M1 & M5)
@@ -60,6 +61,9 @@ func emit_player_health_changed(current: float, max_hp: float) -> void:
 func emit_player_shield_changed(current: float, max_shield: float) -> void:
 	player_shield_changed.emit(current, max_shield)
 
+func emit_player_mana_changed(current: float, max_mana: float) -> void:
+	player_mana_changed.emit(current, max_mana)
+
 func emit_player_dashed(dir: Vector2) -> void:
 	player_dashed.emit(dir)
 
@@ -80,3 +84,9 @@ func emit_companion_rescued(companion: Node) -> void:
 
 func emit_ally_died(ally: Node) -> void:
 	ally_died.emit(ally)
+
+func emit_spell_casted() -> void:
+	spell_casted.emit()
+
+func emit_gold_changed(new_gold: int) -> void:
+	gold_changed.emit(new_gold)

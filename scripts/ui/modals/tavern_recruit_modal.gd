@@ -135,45 +135,49 @@ func _render_candidates() -> void:
 
 func _create_candidate_card(merc: Dictionary) -> PanelContainer:
 	var panel := PanelContainer.new()
-	panel.custom_minimum_size = Vector2(160, 140)
+	panel.custom_minimum_size = Vector2(110, 130)
 	panel.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	panel.size_flags_vertical = Control.SIZE_EXPAND_FILL
 
 	var margin := MarginContainer.new()
-	margin.add_theme_constant_override("margin_left", 6)
-	margin.add_theme_constant_override("margin_top", 6)
-	margin.add_theme_constant_override("margin_right", 6)
-	margin.add_theme_constant_override("margin_bottom", 6)
+	margin.add_theme_constant_override("margin_left", 4)
+	margin.add_theme_constant_override("margin_top", 4)
+	margin.add_theme_constant_override("margin_right", 4)
+	margin.add_theme_constant_override("margin_bottom", 4)
 	panel.add_child(margin)
 
 	var vbox := VBoxContainer.new()
-	vbox.add_theme_constant_override("separation", 3)
+	vbox.add_theme_constant_override("separation", 2)
 	margin.add_child(vbox)
 
 	var name_lbl := Label.new()
 	name_lbl.text = "%s (%s)" % [merc["name"], merc["class_name"]]
 	name_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	name_lbl.modulate = Color(1.0, 0.9, 0.5)
-	name_lbl.add_theme_font_size_override("font_size", 11)
+	name_lbl.add_theme_font_size_override("font_size", 10)
 	vbox.add_child(name_lbl)
 
 	var quote_lbl := Label.new()
 	quote_lbl.text = "\"%s\"" % merc["quote"]
 	quote_lbl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	quote_lbl.custom_minimum_size = Vector2(40, 0)
 	quote_lbl.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	quote_lbl.add_theme_font_size_override("font_size", 10)
+	quote_lbl.add_theme_font_size_override("font_size", 8)
 	quote_lbl.modulate = Color(0.85, 0.9, 1.0)
 	vbox.add_child(quote_lbl)
 
 	var role_lbl := Label.new()
 	role_lbl.text = merc["role_desc"]
 	role_lbl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	role_lbl.add_theme_font_size_override("font_size", 10)
+	role_lbl.custom_minimum_size = Vector2(40, 0)
+	role_lbl.add_theme_font_size_override("font_size", 8)
 	role_lbl.modulate = Color(0.7, 0.7, 0.7)
 	vbox.add_child(role_lbl)
 
 	var btn := Button.new()
 	btn.name = "HireButton_" + merc["id"]
-	btn.add_theme_font_size_override("font_size", 10)
+	btn.custom_minimum_size = Vector2(0, 20)
+	btn.add_theme_font_size_override("font_size", 9)
 	var hired := is_candidate_hired(merc["id"])
 	if hired:
 		btn.text = "Recrutado ✓"

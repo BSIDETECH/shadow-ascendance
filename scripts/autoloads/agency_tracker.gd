@@ -62,7 +62,7 @@ func _get_event_bus() -> Node:
 
 # --- Public Telemetry API ---
 
-func record_order(order_type: int, is_reckless: bool = false) -> void:
+func record_order(_order_type: int, is_reckless: bool = false) -> void:
 	if is_reckless:
 		reckless_orders_issued += 1
 

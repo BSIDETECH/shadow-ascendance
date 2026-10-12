@@ -72,6 +72,7 @@ text = "[OBEDECE]"
 horizontal_alignment = 2
 
 [node name="MessageLabel" type="Label" parent="Margin/HBox/ContentVBox"]
+custom_minimum_size = Vector2(100, 0)
 layout_mode = 2
 mouse_filter = 2
 theme_override_colors/font_color = Color(0.9, 0.9, 0.92, 1)

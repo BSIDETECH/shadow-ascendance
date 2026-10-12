@@ -81,6 +81,7 @@ func _explode() -> void:
 	if p != null and p.has_meta("spread_shot_unlocked") and p.get_meta("spread_shot_unlocked") and not has_meta("is_bounced"):
 		var nearest = null
 		var min_dist = 99999.0
+		var enemies := get_tree().get_nodes_in_group("enemies")
 		for e in enemies:
 			if e is Node2D and is_instance_valid(e) and global_position.distance_to(e.global_position) > aoe_radius:
 				var dist = global_position.distance_to(e.global_position)

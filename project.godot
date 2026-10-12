@@ -22,6 +22,7 @@ LeadershipManager="*res://scripts/autoloads/leadership_manager.gd"
 RelicSystem="*res://scripts/systems/relic_system.gd"
 GameManager="*res://scripts/autoloads/game_manager.gd"
 SilentAgencyTracker="*res://scripts/autoloads/agency_tracker.gd"
+AudioManager="*res://scripts/autoloads/audio_manager.gd"
 
 [display]
 

@@ -74,7 +74,7 @@ func _add_item_to_shop(item_name: String, description: String, cost: int, type: 
 
 	roster_container.add_child(item_panel)
 
-func _process(delta: float) -> void:
+func _process(_delta: float) -> void:
 	if visible and roster_container != null:
 		var current_gold = GameManager.get_gold()
 		for panel in roster_container.get_children():

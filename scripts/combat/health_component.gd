@@ -11,7 +11,6 @@ signal died()
 signal healed(amount: float)
 signal invincibility_started()
 signal invincibility_ended()
-signal shield_changed(current_shield: float, max_shield: float)
 
 @export var max_health: float = 100.0:
 	set(val):
@@ -21,8 +20,6 @@ signal shield_changed(current_shield: float, max_shield: float)
 			health_changed.emit(current_health, max_health)
 
 @export var current_health: float = 100.0
-@export var shield_health: float = 0.0
-@export var max_shield: float = 0.0
 @export_range(0.0, 1.0) var armor_reduction: float = 0.0
 @export_range(0.0, 1.0) var external_damage_mitigation: float = 0.0
 @export var i_frame_duration: float = 0.2
@@ -92,11 +89,13 @@ func take_damage(data: DamageData) -> void:
 		var eb = get_tree().root.get_node_or_null("EventBus")
 		if eb and eb.has_signal("player_shield_changed") and self.get_parent() is Player:
 			eb.player_shield_changed.emit(shield_health, max_shield)
-
-	var old_health := current_health
 	current_health = maxf(0.0, current_health - damage_amount)
 	health_changed.emit(current_health, max_health)
 	took_damage.emit(data)
+	if is_inside_tree():
+		var eb = get_node_or_null("/root/EventBus")
+		if eb != null:
+			eb.emit_damage_dealt(get_parent(), data)
 
 	if current_health <= 0.0:
 		_on_death()

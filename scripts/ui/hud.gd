@@ -2,8 +2,9 @@ class_name GameHUD
 extends CanvasLayer
 
 @onready var hp_container: HBoxContainer = $Control/Margin/VBox/HPContainer
-@onready var hp_bar: ProgressBar = $Control/Margin/VBox/HPContainer/HPBar
-@onready var hp_label: Label = $Control/Margin/VBox/HPContainer/HPLabel
+@onready var hp_bar: ProgressBar = find_child("HPBar", true, false) as ProgressBar
+@onready var shield_bar: ProgressBar = find_child("ShieldBar", true, false) as ProgressBar
+@onready var hp_label: Label = find_child("HPLabel", true, false) as Label
 @onready var xp_bar: ProgressBar = $Control/Margin/VBox/XPContainer/XPBar
 @onready var xp_label: Label = $Control/Margin/VBox/XPContainer/XPLabel
 @onready var kills_label: Label = $Control/Margin/VBox/KillsLabel
@@ -113,6 +114,14 @@ func _on_shield_changed(current: float, max_shield: float) -> void:
 			shield_label.text = ""
 
 
+	var settings_btn := get_node_or_null("Control/Margin/TopRight/SettingsButton") as Button
+	if settings_btn != null:
+		settings_btn.pressed.connect(func():
+			var pm = get_tree().root.get_node_or_null("PauseMenu")
+			if pm != null and pm.has_method("pause_game"):
+				pm.pause_game()
+		)
+
 func _setup_gold_hud() -> void:
 	if kills_label != null and kills_label.get_parent() != null:
 		var parent = kills_label.get_parent()
@@ -146,7 +155,7 @@ func _create_fallback_empty_style() -> void:
 
 func _process(delta: float) -> void:
 	_survival_seconds += delta
-	var minutes := int(_survival_seconds) / 60
+	var minutes := int(_survival_seconds / 60.0)
 	var seconds := int(_survival_seconds) % 60
 	if time_label != null:
 		time_label.text = "Tempo: %02d:%02d" % [minutes, seconds]

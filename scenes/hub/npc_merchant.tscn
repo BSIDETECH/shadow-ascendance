@@ -1,4 +1,4 @@
-[gd_scene load_steps=5 format=3 uid="uid://nm3barnaby001"]
+[gd_scene load_steps=5 format=3 uid="uid://nm3blacksmith001"]
 
 [ext_resource type="Script" path="res://scripts/hub/npc_merchant.gd" id="1_merchant"]
 [ext_resource type="Texture2D" path="res://assets/kenney_tiny_dungeon/Tiles/tile_0102.png" id="2_texture"]
