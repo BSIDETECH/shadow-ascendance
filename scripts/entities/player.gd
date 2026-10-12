@@ -198,11 +198,10 @@ func _execute_shadow_slash() -> void:
 
 
 func _attract_nearby_gems() -> void:
-	var gems := get_tree().get_nodes_in_group("drops")
-	for g in gems:
-		if g is XPGem and is_instance_valid(g):
-			if global_position.distance_to((g as Node2D).global_position) <= pickup_radius:
-				(g as XPGem).attract_towards(self)
+	var areas := magnet_area.get_overlapping_areas()
+	for area in areas:
+		if area is XPGem and is_instance_valid(area):
+			(area as XPGem).attract_towards(self)
 
 func _update_magnet_radius() -> void:
 	var col := magnet_area.get_node_or_null("CollisionShape2D") as CollisionShape2D
