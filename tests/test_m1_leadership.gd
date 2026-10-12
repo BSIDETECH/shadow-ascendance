@@ -125,6 +125,19 @@ func _test_part1_enneagram_profiles() -> void:
 		assert_true(profile.description != "", "M1.01.%d: Profile %d Declares Description" % [type_id, type_id])
 		assert_true(profile.dialogue_lines.size() >= 9, "M1.01.%d: Profile %d Has Full Dialogue Dict" % [type_id, type_id])
 
+	# Dialogue Database tests
+	var p = EnneagramData.new()
+	assert_eq(p.get_dialogue_line("ATTACK", "HEALTHY", "OBEY"), "Ordem recebida. Executando!", "M1.01.a: Dialogue Fallback OBEY")
+	assert_eq(p.get_dialogue_line("ATTACK", "HEALTHY", "HESITATE"), "Espere... isso é seguro?! Vou tentar...", "M1.01.b: Dialogue Fallback HESITATE")
+	assert_eq(p.get_dialogue_line("ATTACK", "HEALTHY", "REFUSE"), "Eu recuso essa ordem!", "M1.01.c: Dialogue Fallback REFUSE")
+	assert_eq(p.get_dialogue_line("ATTACK", "HEALTHY", "UNKNOWN"), "Entendido.", "M1.01.d: Dialogue Fallback UNKNOWN")
+
+	var p1 = EnneagramData.create_preset(EnneagramData.Type.REFORMER)
+	assert_eq(p1.get_dialogue_line("ATTACK", "HEALTHY", "OBEY"), "Executando avanço tático com precisão.", "M1.01.e: Dialogue specific match")
+	assert_eq(p1.get_dialogue_line("attack", "healthy", "obey"), "Executando avanço tático com precisão.", "M1.01.f: Dialogue case insensitive")
+	p1.dialogue_lines.erase("ATTACK_STRESSED_OBEY")
+	assert_eq(p1.get_dialogue_line("ATTACK", "STRESSED", "OBEY"), "Executando avanço tático com precisão.", "M1.01.g: Dialogue fallback to HEALTHY state")
+
 	# Check distinct trait values
 	var t8 := EnneagramData.create_preset(EnneagramData.Type.CHALLENGER)
 	assert_eq(t8.base_attack_obedience, 0.95, "M1.02: Type 8 Challenger Has Relentless Attack Tendency (0.95)")
