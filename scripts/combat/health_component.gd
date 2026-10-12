@@ -50,7 +50,7 @@ func take_damage(data: DamageData) -> void:
 	if data == null or data.amount <= 0.0 or not is_alive() or is_currently_invincible():
 		return
 
-	var damage_amount: float = data.amount
+	var damage_amount: float = maxf(0.0, data.amount)
 	if armor_reduction > 0.0:
 		damage_amount *= (1.0 - armor_reduction)
 	if external_damage_mitigation > 0.0:
