@@ -86,7 +86,7 @@ class HealthComponentGodotImpl:
         return self.current_health > 0.0
 
     def take_damage(self, data: DamageData):
-        if data is None or not self.is_alive() or self.is_currently_invincible():
+        if data is None or data.amount <= 0.0 or not self.is_alive() or self.is_currently_invincible():
             return
 
         old_health = self.current_health
