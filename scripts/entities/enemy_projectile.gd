@@ -1,7 +1,7 @@
 class_name EnemyProjectile
 extends Area2D
 
-@export var speed: float = 200.0
+@export var speed: float = 450.0
 @export var damage: float = 10.0
 @export var lifetime: float = 3.0
 
