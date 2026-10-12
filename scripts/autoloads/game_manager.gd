@@ -22,6 +22,11 @@ var total_completed_runs: int = 0
 var is_transitioning: bool = false
 var player_gold: int = 0
 
+var blacksmith_bonus_damage: float = 0.0
+var blacksmith_bonus_health: float = 0.0
+var blacksmith_bonus_speed: float = 0.0
+
+
 # Difficulty Balancing
 var enemy_health_mult: float = 1.40
 var enemy_damage_mult: float = 1.30
@@ -207,6 +212,15 @@ func trigger_ending(ending_type: String = "", metrics: Dictionary = {}) -> void:
 		change_scene_with_fade(ending_scene_path)
 
 # --- Economy System ---
+
+
+func buy_blacksmith_upgrade(type: String, value: float) -> void:
+	if type == "damage":
+		blacksmith_bonus_damage += value
+	elif type == "health":
+		blacksmith_bonus_health += value
+	elif type == "speed":
+		blacksmith_bonus_speed += value
 
 func add_gold(amount: int) -> void:
 	player_gold += amount
