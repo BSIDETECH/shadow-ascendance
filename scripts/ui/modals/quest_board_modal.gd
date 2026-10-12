@@ -92,8 +92,60 @@ func _ready() -> void:
 		close_button.pressed.connect(close)
 	if start_button != null:
 		start_button.pressed.connect(_on_start_pressed)
+
+	_apply_styles()
 	_build_quest_list()
 	_update_details("F")
+
+func _apply_styles() -> void:
+	var panel = find_child("PanelContainer", true, false) as PanelContainer
+	if panel != null:
+		var board_style = StyleBoxFlat.new()
+		board_style.bg_color = Color(0.12, 0.18, 0.12) # quadro negro
+		board_style.border_width_left = 8
+		board_style.border_width_top = 8
+		board_style.border_width_right = 8
+		board_style.border_width_bottom = 8
+		board_style.border_color = Color(0.4, 0.25, 0.15) # moldura de madeira
+		board_style.corner_radius_top_left = 3
+		board_style.corner_radius_top_right = 3
+		board_style.corner_radius_bottom_right = 3
+		board_style.corner_radius_bottom_left = 3
+		panel.add_theme_stylebox_override("panel", board_style)
+
+	var detail_panel = find_child("DetailPanel", true, false) as PanelContainer
+	if detail_panel != null:
+		var paper_style = StyleBoxFlat.new()
+		paper_style.bg_color = Color(0.95, 0.92, 0.8) # papel envelhecido
+		paper_style.border_width_left = 2
+		paper_style.border_width_top = 10 # espaço para o 'alfinete'
+		paper_style.border_width_right = 2
+		paper_style.border_width_bottom = 2
+		paper_style.border_color = Color(0.8, 0.75, 0.6)
+		paper_style.shadow_color = Color(0, 0, 0, 0.5)
+		paper_style.shadow_size = 5
+		detail_panel.add_theme_stylebox_override("panel", paper_style)
+
+		# Adicionar um alfinete visual (ColorRect pequeno)
+		var pin = ColorRect.new()
+		pin.color = Color(0.8, 0.1, 0.1)
+		pin.custom_minimum_size = Vector2(8, 8)
+		pin.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+		pin.size_flags_vertical = Control.SIZE_SHRINK_BEGIN
+		var margin_container = detail_panel.get_child(0)
+		if margin_container != null and margin_container is MarginContainer:
+			var vbox = margin_container.get_child(0)
+			if vbox != null and vbox is VBoxContainer:
+				vbox.add_child(pin)
+				vbox.move_child(pin, 0) # Coloca no topo
+
+	# Ajustar cores do texto para ler no papel claro
+	if detail_title != null:
+		detail_title.add_theme_color_override("font_color", Color(0.1, 0.1, 0.1))
+	if detail_desc != null:
+		detail_desc.add_theme_color_override("font_color", Color(0.15, 0.15, 0.15))
+	if detail_reward != null:
+		detail_reward.add_theme_color_override("font_color", Color(0.2, 0.2, 0.5))
 
 func _build_quest_list() -> void:
 	if quest_list_container == null:
@@ -105,7 +157,7 @@ func _build_quest_list() -> void:
 		var data: Dictionary = QUEST_DATABASE[rank]
 		var btn := Button.new()
 		btn.name = "RankButton_" + rank
-		btn.text = "Rank %s: %s" % [rank, data["name"]]
+		btn.text = "Rank %s" % rank
 		btn.alignment = HORIZONTAL_ALIGNMENT_LEFT
 		btn.add_theme_font_size_override("font_size", 10)
 		btn.custom_minimum_size = Vector2(0, 24)
@@ -135,7 +187,7 @@ func _update_details(rank: String) -> void:
 		detail_desc.text = data["description"]
 	if detail_criteria != null:
 		detail_criteria.text = "Requisito: " + data["criteria"]
-		detail_criteria.modulate = Color(0.4, 1.0, 0.5) if unlocked else Color(1.0, 0.4, 0.4)
+		detail_criteria.modulate = Color(0.1, 0.5, 0.1) if unlocked else Color(0.7, 0.1, 0.1)
 	if detail_reward != null:
 		detail_reward.text = "Recompensa: " + data["reward"]
 	if start_button != null:
@@ -149,6 +201,10 @@ func _on_start_pressed() -> void:
 
 func open() -> void:
 	visible = true
+	var p_rank = get_player_rank()
+	if title_label != null:
+		title_label.text = "Quadro de Missões da Guilda — Elena (Seu Rank: %s)" % p_rank
+	_build_quest_list()
 	_selected_rank = "F"
 	_update_details("F")
 	if status_label != null:
@@ -185,8 +241,27 @@ func select_quest(rank: String) -> bool:
 func is_rank_unlocked(rank: String) -> bool:
 	return rank in get_available_ranks()
 
+func get_player_rank() -> String:
+	var runs: int = 0
+	var gm = null
+	if is_inside_tree():
+		gm = get_tree().root.get_node_or_null("GameManager")
+	if gm != null:
+		runs = gm.get("total_completed_runs") if gm.get("total_completed_runs") != null else 0
+
+	var ranks = ["F", "E", "D", "C", "B", "A", "S"]
+	var index = clampi(runs / 3, 0, ranks.size() - 1)
+	return ranks[index]
+
 func get_available_ranks() -> Array[String]:
-	return ["F", "E"]
+	var ranks = ["F", "E", "D", "C", "B", "A", "S"]
+	var current_rank = get_player_rank()
+	var available: Array[String] = []
+	for r in ranks:
+		available.append(r)
+		if r == current_rank:
+			break
+	return available
 
 func get_all_ranks() -> Array[String]:
 	return ["F", "E", "D", "C", "B", "A", "S"]
