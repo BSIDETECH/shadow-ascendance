@@ -25,7 +25,7 @@ var _style_active: StyleBox
 var _style_empty: StyleBox
 var _survival_seconds: float = 0.0
 var _shake_tween: Tween
-var _last_charges: int = 3
+var _last_charges: int = 1
 
 var _event_bus: Node = null
 
@@ -61,7 +61,7 @@ func _ready() -> void:
 			eb.gold_changed.connect(_on_gold_changed)
 
 	_setup_gold_hud()
-	update_leadership_charges(3, 3)
+	update_leadership_charges(1, 1)
 
 func _setup_gold_hud() -> void:
 	if kills_label != null and kills_label.get_parent() != null:
@@ -101,6 +101,23 @@ func _process(delta: float) -> void:
 	if time_label != null:
 		time_label.text = "Tempo: %02d:%02d" % [minutes, seconds]
 
+	# Check for hired companions and toggle leadership visibility
+	var gm := get_tree().root.get_node_or_null("GameManager")
+	if gm != null and gm.has_method("get_active_party_roster"):
+		var roster = gm.get_active_party_roster()
+		if leadership_container != null:
+			leadership_container.visible = (roster.size() > 0)
+
+	# Update recharge label with time
+	var lm := get_tree().root.get_node_or_null("LeadershipManager")
+	if lm != null and recharge_label != null and leadership_container != null and leadership_container.visible:
+		if lm.has_method("get_cooldown_time_left"):
+			var cd: float = lm.get_cooldown_time_left()
+			if cd > 0.0:
+				recharge_label.text = "Recarga: %.1f s" % cd
+			else:
+				recharge_label.text = "Pronto"
+
 func update_health(current: float, max_hp: float) -> void:
 	if hp_bar != null:
 		hp_bar.max_value = max_hp
@@ -125,22 +142,25 @@ func update_xp(current_xp: int, next_xp: int, level: int) -> void:
 func update_kills(kills: int) -> void:
 	if kills_label != null:
 		kills_label.text = "Abates: %d" % kills
-	if recharge_label != null:
-		var prog: int = kills % 10
-		recharge_label.text = "Recarga: %d/10 abates" % prog
 
-func update_leadership_charges(current: int, max_charges: int = 3) -> void:
+func update_leadership_charges(current: int, max_charges: int = 1) -> void:
 	if charges_count_label != null:
 		charges_count_label.text = "[ %d/%d ]" % [current, max_charges]
 
-	for i in range(_pips.size()):
-		var pip := _pips[i]
+	# With only 1 charge, pip2 and pip3 can be hidden
+	if _pips.size() >= 3:
+		if _pips[1] != null: _pips[1].visible = false
+		if _pips[2] != null: _pips[2].visible = false
+
+	if _pips.size() >= 1:
+		var pip := _pips[0]
 		if pip != null:
-			if i < current:
+			pip.visible = true
+			if current > 0:
 				if _style_active != null:
 					pip.add_theme_stylebox_override("panel", _style_active)
-				if current > _last_charges and i == current - 1:
-					play_charge_gained_punch(i)
+				if current > _last_charges:
+					play_charge_gained_punch(0)
 			else:
 				if _style_empty != null:
 					pip.add_theme_stylebox_override("panel", _style_empty)
