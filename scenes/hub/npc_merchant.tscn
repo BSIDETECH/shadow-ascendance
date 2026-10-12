@@ -1,0 +1,47 @@
+[gd_scene load_steps=5 format=3 uid="uid://nm3barnaby001"]
+
+[ext_resource type="Script" path="res://scripts/hub/npc_merchant.gd" id="1_merchant"]
+[ext_resource type="Texture2D" path="res://assets/kenney_tiny_dungeon/Tiles/tile_0102.png" id="2_texture"]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_barnaby"]
+radius = 7.0
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_area"]
+radius = 32.0
+
+[node name="Merchant" type="CharacterBody2D"]
+collision_layer = 1
+collision_mask = 2
+script = ExtResource("1_merchant")
+
+[node name="Sprite2D" type="Sprite2D" parent="."]
+texture = ExtResource("2_texture")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+shape = SubResource("CircleShape2D_barnaby")
+
+[node name="InteractionArea" type="Area2D" parent="."]
+collision_layer = 0
+collision_mask = 2
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="InteractionArea"]
+shape = SubResource("CircleShape2D_area")
+
+[node name="InteractionPrompt" type="Label" parent="."]
+visible = false
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -38.0
+offset_top = -26.0
+offset_right = 38.0
+offset_bottom = -12.0
+grow_horizontal = 2
+grow_vertical = 0
+theme_override_colors/font_color = Color(1, 0.85, 0.3, 1)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.8)
+theme_override_font_sizes/font_size = 10
+text = "[E] Interagir"
+horizontal_alignment = 1

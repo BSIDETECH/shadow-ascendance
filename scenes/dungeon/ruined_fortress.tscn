@@ -1,5 +1,6 @@
 [gd_scene format=3 uid="uid://itapbydjaulk"]
 
+[ext_resource type="PackedScene" path="res://scenes/env/tree.tscn" id="tree_scene"]
 [ext_resource type="Script" uid="uid://vvmsiekcawg5" path="res://scripts/dungeon/ruined_fortress.gd" id="1_fortress"]
 [ext_resource type="Texture2D" uid="uid://b5wa0xr15s5sy" path="res://assets/kenney_tiny_dungeon/Tiles/tile_0038.png" id="2_floor"]
 [ext_resource type="Script" uid="uid://dgeviod8onql7" path="res://scripts/dungeon/leyline_monolith.gd" id="3_monolith"]
@@ -66,6 +67,26 @@ script = ExtResource("3_monolith")
 [node name="Boss" type="CharacterBody2D" parent="." unique_id=1393320054]
 position = Vector2(0, -160)
 script = ExtResource("4_boss")
+
+
+[node name="ForestTrees" type="Node2D" parent="."]
+y_sort_enabled = true
+
+[node name="Tree1" parent="ForestTrees" instance=ExtResource("tree_scene")]
+position = Vector2(-200, -100)
+
+[node name="Tree2" parent="ForestTrees" instance=ExtResource("tree_scene")]
+position = Vector2(250, -150)
+
+[node name="Tree3" parent="ForestTrees" instance=ExtResource("tree_scene")]
+position = Vector2(-300, 150)
+
+[node name="Tree4" parent="ForestTrees" instance=ExtResource("tree_scene")]
+position = Vector2(100, 200)
+
+[node name="Tree5" parent="ForestTrees" instance=ExtResource("tree_scene")]
+position = Vector2(400, 50)
+
 
 [node name="Player" parent="." unique_id=601090869 instance=ExtResource("5_player")]
 position = Vector2(0, 160)

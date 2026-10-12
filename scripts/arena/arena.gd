@@ -18,6 +18,7 @@ var _boss_spawned: bool = false
 @onready var gacha_screen: GachaScreen = $GachaScreen
 
 var enemy_scene: PackedScene = preload("res://scenes/entities/enemies/enemy_base.tscn")
+var enemy_ranged_scene: PackedScene = preload("res://scenes/entities/enemies/enemy_ranged.tscn")
 
 var _is_game_over: bool = false
 
@@ -169,9 +170,41 @@ func _spawn_wave() -> void:
 	count = mini(count, 8)
 
 	for i in range(count):
-		var enemy := enemy_scene.instantiate() as Enemy
+		# Determine type before instantiation
+		var type = Enemy.EnemyType.SKELETON
+		if _game_time < 25.0:
+			type = Enemy.EnemyType.SLIME if randf() < 0.6 else Enemy.EnemyType.BAT
+		elif _game_time < 60.0:
+			var roll := randf()
+			if roll < 0.4:
+				type = Enemy.EnemyType.SKELETON
+			elif roll < 0.65:
+				type = Enemy.EnemyType.SLIME
+			elif roll < 0.85:
+				type = Enemy.EnemyType.BAT
+			else:
+				type = Enemy.EnemyType.RANGED
+		else:
+			var roll := randf()
+			if roll < 0.4:
+				type = Enemy.EnemyType.SKELETON
+			elif roll < 0.65:
+				type = Enemy.EnemyType.BAT
+			elif roll < 0.8:
+				type = Enemy.EnemyType.SLIME
+			else:
+				type = Enemy.EnemyType.RANGED
+
+		var enemy = null
+		if type == Enemy.EnemyType.RANGED and enemy_ranged_scene != null:
+			enemy = enemy_ranged_scene.instantiate() as Enemy
+		else:
+			enemy = enemy_scene.instantiate() as Enemy
+
 		if enemy == null:
 			continue
+
+		enemy.set_type(type)
 
 		# Random position outside camera view (radius ~380-460)
 		var angle := randf() * TAU
@@ -183,27 +216,6 @@ func _spawn_wave() -> void:
 		spawn_pos.y = clampf(spawn_pos.y, -360.0, 360.0)
 
 		enemy.global_position = spawn_pos
-
-		# Pick enemy type based on elapsed time
-		if _game_time < 25.0:
-			enemy.set_type(Enemy.EnemyType.SLIME if randf() < 0.6 else Enemy.EnemyType.BAT)
-		elif _game_time < 60.0:
-			var roll := randf()
-			if roll < 0.4:
-				enemy.set_type(Enemy.EnemyType.SKELETON)
-			elif roll < 0.7:
-				enemy.set_type(Enemy.EnemyType.SLIME)
-			else:
-				enemy.set_type(Enemy.EnemyType.BAT)
-		else:
-			var roll := randf()
-			if roll < 0.5:
-				enemy.set_type(Enemy.EnemyType.SKELETON)
-			elif roll < 0.8:
-				enemy.set_type(Enemy.EnemyType.BAT)
-			else:
-				enemy.set_type(Enemy.EnemyType.SLIME)
-
 		add_child(enemy)
 
 func _spawn_boss() -> void:

@@ -42,18 +42,25 @@ func _physics_process(delta: float) -> void:
 	var distance := global_position.distance_to(_target.global_position)
 	var direction := (_target.global_position - global_position).normalized()
 
-	if distance < 120.0:
-		# Kite away
-		velocity = -direction * _current_speed
-		_attack_timer = maxf(0.0, _attack_timer - delta)
-	elif distance <= 200.0:
-		# Stop or strafe slowly, and shoot
-		velocity = Vector2.ZERO
-		_attack_timer -= delta
-		if _attack_timer <= 0.0:
-			_shoot()
+	var has_los := _has_line_of_sight(_target)
+
+	if has_los:
+		if distance < 120.0:
+			# Kite away
+			velocity = -direction * _current_speed
+			_attack_timer = maxf(0.0, _attack_timer - delta)
+		elif distance <= 200.0:
+			# Stop or strafe slowly, and shoot
+			velocity = Vector2.ZERO
+			_attack_timer -= delta
+			if _attack_timer <= 0.0:
+				_shoot()
+		else:
+			# Move towards target
+			velocity = direction * _current_speed
+			_attack_timer = maxf(0.0, _attack_timer - delta)
 	else:
-		# Move towards target
+		# No LOS, approach target
 		velocity = direction * _current_speed
 		_attack_timer = maxf(0.0, _attack_timer - delta)
 
