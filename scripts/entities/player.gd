@@ -91,6 +91,12 @@ func _ready() -> void:
 	slash_visual.visible = false
 	_apply_weapon_mode()
 	
+	if GameManager != null and "blacksmith_bonus_damage" in GameManager: # Checa se o AutoLoad tá de pé
+		base_damage += GameManager.blacksmith_bonus_damage
+		health_component.max_health += GameManager.blacksmith_bonus_health
+		health_component.current_health += GameManager.blacksmith_bonus_health
+		base_speed += GameManager.blacksmith_bonus_speed
+
 	EventBus.enemy_died.connect(_on_enemy_killed)
 	_update_magnet_radius()
 	EventBus.emit_player_mana_changed(current_mana, max_mana)

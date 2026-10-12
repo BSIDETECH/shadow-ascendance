@@ -30,6 +30,9 @@
 [ext_resource type="PackedScene" path="res://scenes/ui/modals/quest_board_modal.tscn" id="28_quest_modal"]
 [ext_resource type="PackedScene" path="res://scenes/ui/modals/tavern_recruit_modal.tscn" id="29_tavern_modal"]
 [ext_resource type="PackedScene" path="res://scenes/ui/dialogue/bottom_dialogue_box.tscn" id="30_dialogue_box"]
+[ext_resource type="PackedScene" path="res://scenes/ui/modals/armory_modal.tscn" id="31_armory"]
+[ext_resource type="PackedScene" path="res://scenes/hub/npc_blacksmith.tscn" id="32_blacksmith"]
+
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_wall_top"]
 size = Vector2(660, 20)
@@ -300,6 +303,9 @@ shape = SubResource("CircleShape2D_well")
 [node name="Elena" parent="." instance=ExtResource("25_elena")]
 position = Vector2(180, 120)
 
+[node name="Blacksmith" parent="." instance=ExtResource("32_blacksmith")]
+position = Vector2(245, 120)
+
 [node name="Barnaby" parent="." instance=ExtResource("26_barnaby")]
 position = Vector2(460, 120)
 
@@ -370,4 +376,5 @@ horizontal_alignment = 1
 
 [node name="QuestBoardModal" parent="UI" instance=ExtResource("28_quest_modal")]
 
+[node name="ArmoryModal" parent="UI" instance=ExtResource("31_armory")]
 [node name="TavernRecruitModal" parent="UI" instance=ExtResource("29_tavern_modal")]
