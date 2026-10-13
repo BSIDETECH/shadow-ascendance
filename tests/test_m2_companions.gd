@@ -222,8 +222,27 @@ func _test_part2_paladin_guardian_class() -> void:
 		assert_almost_eq(found_bubble.lifetime, 4.5, 0.1, "M2.29.5: Deployed ShieldBubble has 4.5s lifetime")
 		found_bubble.queue_free()
 
-	dummy_enemy.free()
+	# Test missing shield bubble script
+	pal._aegis_cooldown_timer = 0.0
+	var original_script = pal.shield_bubble_script
+	pal.shield_bubble_script = null
+	pal.deploy_aegis_shield()
+	assert_almost_eq(pal._aegis_cooldown_timer, pal.aegis_cooldown, 0.05, "M2.29.6: deploy_aegis_shield sets cooldown even when shield_bubble_script is null")
+	var extra_bubble_count = 0
+	for child in root.get_children():
+		if child.get_script() != null and "shield_bubble.gd" in child.get_script().resource_path and not child.is_queued_for_deletion():
+			extra_bubble_count += 1
+	assert_eq(extra_bubble_count, 0, "M2.29.7: deploy_aegis_shield does not spawn bubble when script is null")
+	pal.shield_bubble_script = original_script
+
+	# Test missing parent (orphan node)
+	pal._aegis_cooldown_timer = 0.0
 	root.remove_child(pal)
+	pal.deploy_aegis_shield()
+	assert_almost_eq(pal._aegis_cooldown_timer, pal.aegis_cooldown, 0.05, "M2.29.8: deploy_aegis_shield sets cooldown when parent is null")
+	# Bubble cannot be added to parent, but should not crash
+
+	dummy_enemy.free()
 	pal.free()
 
 	# Verify Paladin Scene
