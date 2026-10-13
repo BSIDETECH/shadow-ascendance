@@ -154,7 +154,7 @@ func _build_quest_list() -> void:
 		c.queue_free()
 
 	for rank in get_all_ranks():
-		var data: Dictionary = QUEST_DATABASE[rank]
+		var _data: Dictionary = QUEST_DATABASE[rank]
 		var btn := Button.new()
 		btn.name = "RankButton_" + rank
 		btn.text = "Rank %s" % rank
@@ -250,7 +250,7 @@ func get_player_rank() -> String:
 		runs = gm.get("total_completed_runs") if gm.get("total_completed_runs") != null else 0
 
 	var ranks = ["F", "E", "D", "C", "B", "A", "S"]
-	var index = clampi(runs / 3, 0, ranks.size() - 1)
+	var index = clampi(int(runs) / 3, 0, ranks.size() - 1)
 	return ranks[index]
 
 func get_available_ranks() -> Array[String]:

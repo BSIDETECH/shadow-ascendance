@@ -52,7 +52,7 @@ func _process(delta: float) -> void:
 				health_component.take_damage(DamageData.new(5.0, DamageData.DamageType.FIRE))
 			fire_timer = 1.0
 
-func _on_health_changed(current: float, max_health: float) -> void:
+func _on_health_changed(_current: float, _max_health: float) -> void:
 	var flash_tween = create_tween()
 	flash_tween.tween_property(sprite, "modulate:v", 2.0, 0.1)
 	flash_tween.tween_property(sprite, "modulate:v", 1.0, 0.1)

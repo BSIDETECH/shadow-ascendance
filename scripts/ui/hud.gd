@@ -130,7 +130,7 @@ func _on_potions_changed(health_count: int, shield_count: int, revive_count: int
 	if barrier_potions_label:
 		barrier_potions_label.text = "[5] Poções de Barreira: " + str(barrier_count)
 
-func _on_shield_changed(current: float, max_shield: float) -> void:
+func _on_shield_changed(current: float, _max_shield: float) -> void:
 	if shield_label:
 		if current > 0.0:
 			shield_label.text = "🛡️ Escudo: " + str(int(current))
