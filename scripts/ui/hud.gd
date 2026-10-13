@@ -64,6 +64,14 @@ func _ready() -> void:
 	_setup_potions_hud()
 	update_leadership_charges(3, 3)
 
+	var settings_btn := get_node_or_null("Control/Margin/TopRight/SettingsButton") as Button
+	if settings_btn != null:
+		settings_btn.pressed.connect(func():
+			var pm = get_tree().root.get_node_or_null("PauseMenu")
+			if pm != null and pm.has_method("pause_game"):
+				pm.pause_game()
+		)
+
 var health_potions_label: Label = null
 var shield_potions_label: Label = null
 var revive_potions_label: Label = null

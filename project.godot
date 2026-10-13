@@ -17,6 +17,7 @@ config/icon="res://assets/kenney_tiny_dungeon/Tiles/tile_0084.png"
 
 [autoload]
 
+PauseMenu="*res://scenes/ui/pause_menu.tscn"
 EventBus="*res://scripts/autoloads/event_bus.gd"
 LeadershipManager="*res://scripts/autoloads/leadership_manager.gd"
 RelicSystem="*res://scripts/systems/relic_system.gd"
