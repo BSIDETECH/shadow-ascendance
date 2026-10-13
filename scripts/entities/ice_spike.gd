@@ -110,13 +110,26 @@ func _apply_ice_slow(entity: Node) -> void:
 		entity.set("_slow_timer", maxf(float(entity.get("_slow_timer")), slow_duration))
 
 	if is_glacial and entity is Node2D:
-		var enemies = get_tree().get_nodes_in_group("enemies")
-		for e in enemies:
-			if e != entity and is_instance_valid(e) and (e as Node2D).global_position.distance_to(entity.global_position) <= 60.0:
-				if e.has_method("apply_slow"): e.apply_slow(1.0, 1.5)
-				elif e.get("_slow_timer") != null:
-					e.set("_slow_factor", 1.0)
-					e.set("_slow_timer", 1.5)
+		var space_state := get_world_2d().direct_space_state if is_inside_tree() and get_world_2d() != null else null
+		if space_state != null:
+			var shape := CircleShape2D.new()
+			shape.radius = 60.0
+			var query := PhysicsShapeQueryParameters2D.new()
+			query.shape = shape
+			query.transform = Transform2D(0, entity.global_position)
+			query.collide_with_areas = true
+			query.collide_with_bodies = true
+			var results := space_state.intersect_shape(query, 32)
+			var processed_enemies := {}
+			for res in results:
+				var e = res.collider as Node
+				if e != null and e.is_in_group("enemies") and not processed_enemies.has(e):
+					processed_enemies[e] = true
+					if e != entity and is_instance_valid(e) and (e as Node2D).global_position.distance_to(entity.global_position) <= 60.0:
+						if e.has_method("apply_slow"): e.apply_slow(1.0, 1.5)
+						elif e.get("_slow_timer") != null:
+							e.set("_slow_factor", 1.0)
+							e.set("_slow_timer", 1.5)
 
 func _shatter() -> void:
 	set_physics_process(false)

@@ -74,10 +74,24 @@ func trigger_trap() -> void:
 	_is_triggered = true
 
 	# Apply slow to all enemies within radius
-	var tree := get_tree()
-	if tree != null:
-		var enemies := tree.get_nodes_in_group("enemies")
-		for e in enemies:
+	if not is_inside_tree(): return
+	var world := get_world_2d()
+	if world == null: return
+	var space_state := world.direct_space_state
+	if space_state == null: return
+	var shape := CircleShape2D.new()
+	shape.radius = slow_radius
+	var query := PhysicsShapeQueryParameters2D.new()
+	query.shape = shape
+	query.transform = Transform2D(0, global_position)
+	query.collide_with_areas = true
+	query.collide_with_bodies = true
+	var results := space_state.intersect_shape(query, 32)
+	var processed_enemies := {}
+	for res in results:
+		var e = res.collider as Node
+		if e != null and e.is_in_group("enemies") and not processed_enemies.has(e):
+			processed_enemies[e] = true
 			if e is Node2D and is_instance_valid(e):
 				var node := e as Node2D
 				if global_position.distance_to(node.global_position) <= slow_radius:

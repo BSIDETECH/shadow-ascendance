@@ -293,13 +293,29 @@ func _handle_movement(delta: float) -> void:
 		velocity = _dash_direction * dash_speed
 		move_and_slide()
 		if alpha_strike_unlocked:
-			var enemies = get_tree().get_nodes_in_group("enemies")
-			for e in enemies:
-				if is_instance_valid(e) and global_position.distance_to(e.global_position) < 45.0:
+		if not is_inside_tree(): return
+		var world := get_world_2d()
+		if world == null: return
+		var space_state := world.direct_space_state
+		if space_state == null: return
+		var shape := CircleShape2D.new()
+		shape.radius = 45.0
+		var query := PhysicsShapeQueryParameters2D.new()
+		query.shape = shape
+		query.transform = Transform2D(0, global_position)
+		query.collide_with_areas = true
+		query.collide_with_bodies = true
+		var results := space_state.intersect_shape(query, 32)
+		var processed_enemies := {}
+		for res in results:
+			var e = res.collider as Node
+			if e != null and e.is_in_group("enemies") and not processed_enemies.has(e):
+				processed_enemies[e] = true
+				if is_instance_valid(e) and global_position.distance_to((e as Node2D).global_position) < 45.0:
 					var hurtbox = e.get_node_or_null("HurtboxComponent")
-					if hurtbox:
-						var dmg = DamageData.new(base_damage * damage_mult, DamageData.DamageType.PHYSICAL, 0.0, Vector2.ZERO, self)
-						hurtbox.receive_hit(dmg)
+						if hurtbox:
+							var dmg = DamageData.new(base_damage * damage_mult, DamageData.DamageType.PHYSICAL, 0.0, Vector2.ZERO, self)
+							hurtbox.receive_hit(dmg)
 		return
 
 	var input_vector := Input.get_vector("move_left", "move_right", "move_up", "move_down")
@@ -447,10 +463,23 @@ func _execute_shadow_slash() -> void:
 					if target_health and target_health.current_health < target_health.max_health * 0.3:
 						extra_dmg += 9999.0
 						# Fear
-						var all_enemies = get_tree().get_nodes_in_group("enemies")
-						for e in all_enemies:
-							if e != target and is_instance_valid(e) and global_position.distance_to(e.global_position) < 150.0:
-								if e.has_method("apply_stun"): e.apply_stun(1.5)
+					var space_state := get_world_2d().direct_space_state if is_inside_tree() and get_world_2d() != null else null
+					if space_state != null:
+						var shape := CircleShape2D.new()
+						shape.radius = 150.0
+						var query := PhysicsShapeQueryParameters2D.new()
+						query.shape = shape
+						query.transform = Transform2D(0, global_position)
+						query.collide_with_areas = true
+						query.collide_with_bodies = true
+						var results := space_state.intersect_shape(query, 32)
+						var processed_enemies := {}
+						for res in results:
+							var e = res.collider as Node
+							if e != null and e.is_in_group("enemies") and not processed_enemies.has(e):
+								processed_enemies[e] = true
+								if e != target and is_instance_valid(e) and global_position.distance_to((e as Node2D).global_position) < 150.0:
+										if e.has_method("apply_stun"): e.apply_stun(1.5)
 				if extra_dmg > 0.0:
 					var kb_dir = (target.global_position - global_position).normalized()
 					var data = DamageData.new(extra_dmg, DamageData.DamageType.DARK, 50.0, kb_dir, self)
@@ -502,15 +531,28 @@ func _on_enemy_killed(_pos: Vector2, _xp: int) -> void:
 
 	if cosmic_rupture_unlocked and (kill_counter % 20 == 0):
 		var mouse_dir = (get_global_mouse_position() - global_position).normalized()
-		var enemies = get_tree().get_nodes_in_group("enemies")
-		for e in enemies:
-			if is_instance_valid(e):
-				var e_dir = (e.global_position - global_position).normalized()
-				if e_dir.dot(mouse_dir) > 0.9: # Narrow angle cone / laser
-					var hurtbox = e.get_node_or_null("HurtboxComponent")
-					if hurtbox:
-						var data = DamageData.new(80.0 * damage_mult, DamageData.DamageType.DARK, 100.0, mouse_dir, self)
-						hurtbox.receive_hit(data)
+		var space_state := get_world_2d().direct_space_state if is_inside_tree() and get_world_2d() != null else null
+		if space_state != null:
+			var shape := CircleShape2D.new()
+			shape.radius = 1500.0 # Bounding radius for twin-stick screens
+			var query := PhysicsShapeQueryParameters2D.new()
+			query.shape = shape
+			query.transform = Transform2D(0, global_position)
+			query.collide_with_areas = true
+			query.collide_with_bodies = true
+			var results := space_state.intersect_shape(query, 128)
+			var processed_enemies := {}
+			for res in results:
+				var e = res.collider as Node
+				if e != null and e.is_in_group("enemies") and not processed_enemies.has(e):
+					processed_enemies[e] = true
+					if is_instance_valid(e):
+						var e_dir = ((e as Node2D).global_position - global_position).normalized()
+						if e_dir.dot(mouse_dir) > 0.9: # Narrow angle cone / laser
+							var hurtbox = e.get_node_or_null("HurtboxComponent")
+							if hurtbox:
+								var data = DamageData.new(80.0 * damage_mult, DamageData.DamageType.DARK, 100.0, mouse_dir, self)
+								hurtbox.receive_hit(data)
 
 	if void_feast_unlocked and _xp >= 10 and void_feast_stacks < 10:
 		void_feast_stacks += 1
