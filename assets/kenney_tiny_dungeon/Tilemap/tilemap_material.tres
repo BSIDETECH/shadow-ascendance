@@ -1,0 +1,8 @@
+[gd_resource type="CanvasTexture" load_steps=3 format=3 uid="uid://ccxy1h8s62tvd"]
+
+[ext_resource type="Texture2D" uid="uid://bdmq8w0p8r6lq" path="res://assets/kenney_tiny_dungeon/Tilemap/tilemap_packed.png" id="1_tex"]
+[ext_resource type="Texture2D" uid="uid://nmap" path="res://assets/kenney_tiny_dungeon/Tilemap/tilemap_packed_n.png" id="2_nmap"]
+
+[resource]
+diffuse_texture = ExtResource("1_tex")
+normal_texture = ExtResource("2_nmap")

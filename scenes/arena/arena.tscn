@@ -2,9 +2,9 @@
 
 [ext_resource type="PackedScene" path="res://scenes/env/tree.tscn" id="tree_scene"]
 [ext_resource type="Script" path="res://scripts/arena/arena.gd" id="1_arena"]
-[ext_resource type="Texture2D" path="res://assets/kenney_tiny_dungeon/Tiles/tile_0037.png" id="2_floor"]
-[ext_resource type="Texture2D" path="res://assets/kenney_tiny_dungeon/Tiles/tile_0038.png" id="3_floor_cracked"]
-[ext_resource type="Texture2D" path="res://assets/kenney_tiny_dungeon/Tiles/tile_0040.png" id="4_stone_wall"]
+[ext_resource type="Texture2D" path="res://assets/kenney_tiny_dungeon/Tiles/materials/tile_0037_mat.tres" id="2_floor"]
+[ext_resource type="Texture2D" path="res://assets/kenney_tiny_dungeon/Tiles/materials/tile_0038_mat.tres" id="3_floor_cracked"]
+[ext_resource type="Texture2D" path="res://assets/kenney_tiny_dungeon/Tiles/materials/tile_0040_mat.tres" id="4_stone_wall"]
 [ext_resource type="Texture2D" path="res://assets/kenney_tiny_dungeon/Tiles/tile_0131.png" id="5_torch"]
 [ext_resource type="Texture2D" path="res://assets/kenney_tiny_dungeon/Tiles/tile_0055.png" id="6_brazier"]
 [ext_resource type="PackedScene" path="res://scenes/entities/player/player.tscn" id="7_player"]
@@ -28,7 +28,7 @@ y_sort_enabled = true
 script = ExtResource("1_arena")
 
 [node name="VisionModulate" type="CanvasModulate" parent="."]
-color = Color(0.05, 0.05, 0.08, 1)
+color = Color( 0.15, 0.15, 0.2, 1 )
 
 
 [node name="Floor" type="TextureRect" parent="."]

@@ -81,6 +81,7 @@ collision_mask = 32
 shape = SubResource("CircleShape2D_magnet")
 
 [node name="VisionLight" type="PointLight2D" parent="."]
+height = 15.0
 shadow_enabled = true
 energy = 1.2
 blend_mode = 0
