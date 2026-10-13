@@ -86,3 +86,4 @@ shadow_enabled = true
 energy = 1.2
 blend_mode = 0
 texture = SubResource("GradientTexture2D_vision")
+height = 15.0
