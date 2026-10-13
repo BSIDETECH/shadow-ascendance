@@ -301,9 +301,27 @@ func _handle_combat(_delta: float) -> void:
 	# Virtual hook for subclasses to implement specific attacks
 	var p = get_tree().get_first_node_in_group("player")
 	if p != null and p.has_meta("solar_flare_unlocked") and p.get_meta("solar_flare_unlocked"):
-		var enemies = get_tree().get_nodes_in_group("enemies")
-		for e in enemies:
-			if is_instance_valid(e) and e is Node2D and global_position.distance_to(e.global_position) <= 60.0:
+		if not is_inside_tree():
+			return
+		var space := get_world_2d().direct_space_state
+		var shape := CircleShape2D.new()
+		shape.radius = 60.0
+		var query := PhysicsShapeQueryParameters2D.new()
+		query.shape = shape
+		query.transform = Transform2D(0, global_position)
+		query.collide_with_areas = true
+		query.collide_with_bodies = true
+		var results := space.intersect_shape(query, 64)
+		var processed_enemies := {}
+		for res in results:
+			var collider = res.collider
+			var e = null
+			if collider is HurtboxComponent:
+				e = collider.owner if collider.owner != null else collider.get_parent()
+			elif collider is Node2D and collider.is_in_group("enemies"):
+				e = collider
+			if e != null and is_instance_valid(e) and e.is_in_group("enemies") and not processed_enemies.has(e):
+				processed_enemies[e] = true
 				e.set_meta("marked_by_solar", true)
 
 func _on_leadership_order_issued(order_type: int, target_pos: Vector2) -> void:

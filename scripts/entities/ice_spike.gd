@@ -110,13 +110,34 @@ func _apply_ice_slow(entity: Node) -> void:
 		entity.set("_slow_timer", maxf(float(entity.get("_slow_timer")), slow_duration))
 
 	if is_glacial and entity is Node2D:
-		var enemies = get_tree().get_nodes_in_group("enemies")
-		for e in enemies:
-			if e != entity and is_instance_valid(e) and (e as Node2D).global_position.distance_to(entity.global_position) <= 60.0:
-				if e.has_method("apply_slow"): e.apply_slow(1.0, 1.5)
-				elif e.get("_slow_timer") != null:
-					e.set("_slow_factor", 1.0)
-					e.set("_slow_timer", 1.5)
+		if not is_inside_tree():
+			return
+		var space := get_world_2d().direct_space_state
+		var shape := CircleShape2D.new()
+		shape.radius = 60.0
+
+		var query := PhysicsShapeQueryParameters2D.new()
+		query.shape = shape
+		query.transform = Transform2D(0, entity.global_position)
+		query.collide_with_areas = true
+		query.collide_with_bodies = true
+
+		var results := space.intersect_shape(query, 256)
+		var processed_enemies := {}
+
+		for res in results:
+			var collider = res.collider
+			var target: Node = null
+			if collider is HurtboxComponent:
+				target = collider.owner if collider.owner != null else collider.get_parent()
+			elif collider is Node2D and collider.is_in_group("enemies"):
+				target = collider
+			if target != null and target != entity and target.is_in_group("enemies") and not processed_enemies.has(target):
+				processed_enemies[target] = true
+				if target.has_method("apply_slow"): target.apply_slow(1.0, 1.5)
+				elif target.get("_slow_timer") != null:
+					target.set("_slow_factor", 1.0)
+					target.set("_slow_timer", 1.5)
 
 func _shatter() -> void:
 	set_physics_process(false)
