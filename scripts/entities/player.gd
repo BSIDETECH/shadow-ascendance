@@ -74,6 +74,12 @@ var _last_move_dir: Vector2 = Vector2.RIGHT
 @onready var magnet_area: Area2D = $MagnetArea
 
 func _ready() -> void:
+
+	if not InputMap.has_action("skill"):
+		InputMap.add_action("skill")
+		var ev_skill := InputEventKey.new()
+		ev_skill.physical_keycode = KEY_3
+		InputMap.action_add_event("skill", ev_skill)
 	if not InputMap.has_action("use_health_potion"):
 		InputMap.add_action("use_health_potion")
 		var ev1 := InputEventKey.new()
