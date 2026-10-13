@@ -34,6 +34,11 @@ var agency_score: int:
 	get:
 		return calculate_agency_score()
 
+var solo_rank_f_kills: int = 0
+
+func record_kill() -> void:
+	solo_rank_f_kills += 1
+
 # Combat distance monitoring configuration (T2.EXP.22)
 const COMBAT_ABANDON_DISTANCE: float = 350.0
 var abandonment_check_interval: float = 1.0
@@ -84,7 +89,17 @@ func record_ally_survived() -> void:
 ## Agency Score formula:
 ## (survived * 25) + (rescues * 15) - (fallen * 35) - (reckless * 10) - (abandonment * 15)
 func calculate_agency_score() -> int:
-	return (allies_survived * 25) + (rescues_performed * 15) - (allies_fallen * 35) - (reckless_orders_issued * 10) - (abandonment_ticks * 15)
+	var score: int = (allies_survived * 25) + (rescues_performed * 15) - (allies_fallen * 35) - (reckless_orders_issued * 10) - (abandonment_ticks * 15)
+	var tree := get_tree()
+	if tree != null and tree.root != null:
+		var gm = tree.root.get_node_or_null("GameManager")
+		if gm != null:
+			var rank = gm.get("selected_quest_rank")
+			if rank == null and gm.has_method("get_selected_quest_rank"):
+				rank = gm.get_selected_quest_rank()
+			if rank == "F" and solo_rank_f_kills > 0:
+				score += 65
+	return score
 
 ## Evaluates Ending type based on organic conduct:
 ## - Solo run (allies_deployed == 0) -> BAD_ENDING (O Monstro Solitário)
@@ -92,9 +107,25 @@ func calculate_agency_score() -> int:
 ## - Score >= 50 and fallen <= 1 -> GOOD_ENDING (A Aliança dos Vivos)
 ## - Fallback: BAD_ENDING if score < 0 else GOOD_ENDING
 func evaluate_ending() -> String:
-	if allies_deployed == 0:
+	var tree := get_tree()
+	var is_rank_f = false
+	if tree != null and tree.root != null:
+		var gm = tree.root.get_node_or_null("GameManager")
+		if gm != null:
+			var rank = gm.get("selected_quest_rank")
+			if rank == null and gm.has_method("get_selected_quest_rank"):
+				rank = gm.get_selected_quest_rank()
+			if rank == "F":
+				is_rank_f = true
+
+	if allies_deployed == 0 and not is_rank_f:
 		return "BAD_ENDING"
+
 	var score: int = calculate_agency_score()
+
+	if is_rank_f and score >= 50:
+		return "GOOD_ENDING"
+
 	if score < 0 or allies_fallen >= 3:
 		return "BAD_ENDING"
 	if score >= 50 and allies_fallen <= 1:
@@ -121,6 +152,7 @@ func reset_metrics() -> void:
 	reckless_orders_issued = 0
 	abandonment_ticks = 0
 	_abandonment_timer = 0.0
+	solo_rank_f_kills = 0
 
 # --- Event Handlers & Signal Listeners ---
 

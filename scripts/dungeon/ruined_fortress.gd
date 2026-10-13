@@ -39,6 +39,9 @@ func _ready() -> void:
 	_setup_victory_portal()
 	_setup_party_roster()
 
+	if EventBus and not EventBus.enemy_died.is_connected(_on_enemy_died):
+		EventBus.enemy_died.connect(_on_enemy_died)
+
 	if player != null:
 		var player_health = player.get_node_or_null("HealthComponent")
 		if player_health != null and not player_health.died.is_connected(_on_player_died):
@@ -184,6 +187,11 @@ func _on_monolith_destroyed(monolith: Node) -> void:
 
 func _on_guardian_defeated(b_name: String) -> void:
 	_handle_boss_death(b_name)
+
+func _on_enemy_died(_pos: Vector2, _xp: int) -> void:
+	var tracker = get_tree().root.get_node_or_null("SilentAgencyTracker")
+	if tracker != null and tracker.has_method("record_kill"):
+		tracker.call("record_kill")
 
 func _on_boss_died(b_name: String, _pos: Vector2) -> void:
 	_handle_boss_death(b_name)
