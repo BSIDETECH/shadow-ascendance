@@ -199,22 +199,26 @@ func _perform_dagger_attack() -> void:
 	var processed_enemies := {}
 
 	for res in results:
-		var node := res.collider as Node2D
-		if node != null and node.is_in_group("enemies") and not processed_enemies.has(node):
-			processed_enemies[node] = true
-			var hurtbox := node.get_node_or_null("HurtboxComponent") as HurtboxComponent
-			if hurtbox != null:
-				var kb_dir := (node.global_position - global_position).normalized()
-				if kb_dir == Vector2.ZERO:
-					kb_dir = Vector2.RIGHT
-				var data := DamageData.new(
-					damage,
-					DamageData.DamageType.PHYSICAL,
-					60.0,
-					kb_dir,
-					self
-				)
-				hurtbox.receive_hit(data)
+		var col := res.collider as Node
+		if col != null and col.is_in_group("enemies") and not processed_enemies.has(col):
+			processed_enemies[col] = true
+			if col is Node2D and is_instance_valid(col):
+				var node := col as Node2D
+				var dist := global_position.distance_to(node.global_position)
+				if dist <= dagger_range:
+					var hurtbox := node.get_node_or_null("HurtboxComponent") as HurtboxComponent
+					if hurtbox != null:
+						var kb_dir := (node.global_position - global_position).normalized()
+						if kb_dir == Vector2.ZERO:
+							kb_dir = Vector2.RIGHT
+						var data := DamageData.new(
+							damage,
+							DamageData.DamageType.PHYSICAL,
+							60.0,
+							kb_dir,
+							self
+						)
+						hurtbox.receive_hit(data)
 
 	# Visual slice effect
 	if sprite != null:
