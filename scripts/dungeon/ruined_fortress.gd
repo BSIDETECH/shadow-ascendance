@@ -48,6 +48,11 @@ func _ready() -> void:
 	if eb != null and not eb.boss_died.is_connected(_on_boss_died):
 		eb.boss_died.connect(_on_boss_died)
 
+	var gm = get_tree().root.get_node_or_null("GameManager")
+	if gm != null and gm.has_method("apply_gacha_card"):
+		for card in gm.get("permanent_gacha_cards", []):
+			gm.call("apply_gacha_card", card, player, hud, get_tree(), null)
+
 func _setup_monoliths() -> void:
 	if monolith_left != null and monolith_left.has_signal("monolith_destroyed"):
 		monolith_left.connect("monolith_destroyed", _on_monolith_destroyed)
@@ -218,6 +223,8 @@ func _on_portal_entered(body: Node2D) -> void:
 
 
 		var gm = get_tree().root.get_node_or_null("GameManager")
+		if gm != null and gm.has_method("commit_gacha_cards"):
+			gm.call("commit_gacha_cards")
 		if gm != null:
 			var rank = gm.get("selected_quest_rank")
 			if rank == null and gm.has_method("get_selected_quest_rank"):
@@ -247,6 +254,9 @@ func _on_player_died() -> void:
 	)
 
 func _show_game_over() -> void:
+	var gm = get_tree().root.get_node_or_null("GameManager")
+	if gm != null and gm.has_method("clear_gacha_cards"):
+		gm.call("clear_gacha_cards")
 	var ending_scene: PackedScene = load("res://scenes/ui/ending_screen/ending_screen.tscn")
 	if ending_scene != null:
 		var ending_node = ending_scene.instantiate()

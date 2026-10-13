@@ -249,3 +249,140 @@ func consume_shield_potion() -> bool:
 		potions_changed.emit(health_potions, shield_potions)
 		return true
 	return false
+
+
+# Gacha Card Persistance
+var permanent_gacha_cards: Array[Dictionary] = []
+var pending_gacha_cards: Array[Dictionary] = []
+
+func add_pending_gacha_card(card: Dictionary) -> void:
+	pending_gacha_cards.append(card)
+
+func commit_gacha_cards() -> void:
+	permanent_gacha_cards.append_array(pending_gacha_cards)
+	pending_gacha_cards.clear()
+
+func clear_gacha_cards() -> void:
+	permanent_gacha_cards.clear()
+	pending_gacha_cards.clear()
+
+func apply_gacha_card(card: Dictionary, player: Node, hud: Node, tree: SceneTree, gacha_screen: Node = null) -> void:
+	if player == null or not is_instance_valid(player):
+		return
+
+	if not player.weapon_unlocked:
+		player.unlock_weapon()
+
+	var buff_companion = func(prop_name: String, multiplier: float = 1.0, add_value: float = 0.0):
+		var targets: Array = []
+		var group_allies := tree.get_nodes_in_group("companions")
+		for ally in group_allies:
+			if ally != null and is_instance_valid(ally) and not targets.has(ally):
+				targets.append(ally)
+		for target in targets:
+			if is_instance_valid(target) and prop_name in target:
+				if multiplier != 1.0:
+					target.set(prop_name, target.get(prop_name) * multiplier)
+				if add_value != 0.0:
+					target.set(prop_name, target.get(prop_name) + add_value)
+
+	var id: String = card.get("id", "")
+	match id:
+		# Cartas R
+		"dmg_up":
+			player.damage_mult += 0.25
+		"spd_up":
+			player.move_speed_mult += 0.20
+		"mag_up":
+			player.pickup_radius *= 1.6
+			player._update_magnet_radius()
+		"hp_up":
+			player.health_component.max_health += 30.0
+			player.health_component.current_health += 30.0
+			if hud != null and hud.has_method("update_health"):
+				hud.update_health(player.health_component.current_health, player.health_component.max_health)
+		# Cartas SR
+		"mage_multi":
+			buff_companion.call("projectiles_per_cast", 1.0, 1.0)
+		"dash_cdr":
+			player.dash_cooldown_mult *= 0.65
+		"heal_full":
+			player.health_component.max_health += 40.0
+			player.health_component.current_health = player.health_component.max_health
+			if hud != null and hud.has_method("update_health"):
+				hud.update_health(player.health_component.current_health, player.health_component.max_health)
+		"mage_haste":
+			buff_companion.call("cast_cooldown", 0.60)
+		# Cartas SSR
+		"lifesteal":
+			player.lifesteal_on_kill += 2.5
+		"atk_spd":
+			player.attack_speed_mult += 0.50
+		"mage_dmg":
+			buff_companion.call("projectile_damage", 1.60)
+		"ssr_vampire":
+			player.lifesteal_on_kill += 4.0
+			player.attack_speed_mult += 0.40
+		"ssr_storm":
+			player.attack_speed_mult += 0.75
+			player.move_speed_mult += 0.35
+		# Cartas EX (Cheats Iniciais)
+		"ex_abyss":
+			player.abyssal_burst_unlocked = true
+		"ex_god":
+			player.damage_mult *= 2.0
+			player.dash_cooldown_mult *= 0.40
+		"ex_mage_wrath":
+			buff_companion.call("projectiles_per_cast", 1.0, 2.0)
+			buff_companion.call("projectile_damage", 2.0)
+		# Cartas R
+		"vorpal_sword":
+			player.vorpal_sword_unlocked = true
+			player._apply_weapon_mode()
+		"alpha_strike":
+			player.alpha_strike_unlocked = true
+		"wind_momentum":
+			player.wind_momentum_unlocked = true
+			player.move_speed_mult += 0.20 # FIX: Adicionar movespeed
+		"spread_shot":
+			player.set_meta("spread_shot_unlocked", true)
+		# Cartas SR
+		"spin_attack":
+			player.spin_attack_unlocked = true
+		"glacial_prison":
+			player.set_meta("glacial_prison_unlocked", true)
+		"insatiable_hunger":
+			player.insatiable_hunger_unlocked = true
+		"solar_flare":
+			player.set_meta("solar_flare_unlocked", true)
+		# Cartas SSR
+		"cosmic_rupture":
+			player.cosmic_rupture_unlocked = true
+		"void_feast":
+			player.void_feast_unlocked = true
+		"noxian_guillotine":
+			player.noxian_guillotine_unlocked = true
+		"ancestral_resurrect":
+			player.ancestral_resurrect_unlocked = true
+		# Cartas EX
+		"glyph_fury":
+			player.set_meta("glyph_fury_unlocked", true)
+		"demigod_forge":
+			if gacha_screen != null:
+				gacha_screen.demigod_forge_active = true
+		# Cartas Boss
+		"realm_of_death":
+			player.set_meta("realm_of_death_unlocked", true)
+		# Cartas de Roubo de Chefe (Boss Theft)
+		"boss_demon_heart":
+			player.health_component.max_health += 100.0
+			player.health_component.current_health = player.health_component.max_health
+			player.fire_pulse_unlocked = true
+			if hud != null and hud.has_method("update_health"):
+				hud.update_health(player.health_component.current_health, player.health_component.max_health)
+		"boss_executioner":
+			player.executioner_unlocked = true
+			player.damage_mult += 0.40
+		"boss_meteor":
+			buff_companion.call("projectile_damage", 2.20)
+			buff_companion.call("projectiles_per_cast", 1.0, 1.0)
