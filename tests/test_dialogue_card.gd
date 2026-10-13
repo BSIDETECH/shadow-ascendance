@@ -9,7 +9,48 @@ func run_all(runner) -> void:
     test_setup_message_fallback_portrait(runner)
     test_setup_message_status_styling(runner)
     test_setup_message_override_color(runner)
+    test_setup_message_missing_nodes(runner)
+    test_setup_message_with_explicit_portrait(runner)
+    test_setup_message_out_of_bounds_status(runner)
     print("DialogueCard tests completed.")
+
+func test_setup_message_missing_nodes(runner) -> void:
+    var card = DialogueCardScript.new()
+    runner.root.add_child(card)
+
+    # Missing nodes scenario (should not crash)
+    card.setup_message("Ghost", "Invisible text")
+
+    # If it didn't crash, we pass
+    runner.record_pass("DialogueCard setup_message missing_nodes")
+
+    # Verify root stylebox is still applied
+    var stylebox = card.get_theme_stylebox("panel") as StyleBoxFlat
+    runner.assert_ne(stylebox, null, "DialogueCard stylebox missing_nodes", "Stylebox override should still be applied even if children are missing")
+
+    card.queue_free()
+
+func test_setup_message_with_explicit_portrait(runner) -> void:
+    var card = _setup_mock_card()
+    runner.root.add_child(card)
+
+    var tex = PlaceholderTexture2D.new()
+    card.setup_message("Lyra", "Hello", card.Status.INFO, tex)
+
+    runner.assert_eq(card.portrait_rect.texture, tex, "DialogueCard setup_message explicit_portrait", "Explicit portrait should be assigned")
+
+    card.queue_free()
+
+func test_setup_message_out_of_bounds_status(runner) -> void:
+    var card = _setup_mock_card()
+    runner.root.add_child(card)
+
+    # Status bounds are clampi(status, 0, Status.INFO)
+    card.setup_message("Bug", "Glitch", 999)
+
+    runner.assert_eq(card.status_badge.text, "[RÁDIO]", "DialogueCard setup_message out_of_bounds_status", "Status badge should clamp to INFO")
+
+    card.queue_free()
 
 func _setup_mock_card() -> Node:
     var card = DialogueCardScript.new()
