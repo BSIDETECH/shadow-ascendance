@@ -293,13 +293,30 @@ func _handle_movement(delta: float) -> void:
 		velocity = _dash_direction * dash_speed
 		move_and_slide()
 		if alpha_strike_unlocked:
-			var enemies = get_tree().get_nodes_in_group("enemies")
-			for e in enemies:
-				if is_instance_valid(e) and global_position.distance_to(e.global_position) < 45.0:
-					var hurtbox = e.get_node_or_null("HurtboxComponent")
-					if hurtbox:
-						var dmg = DamageData.new(base_damage * damage_mult, DamageData.DamageType.PHYSICAL, 0.0, Vector2.ZERO, self)
-						hurtbox.receive_hit(dmg)
+			if is_inside_tree():
+				var space := get_world_2d().direct_space_state
+				var shape := CircleShape2D.new()
+				shape.radius = 45.0
+				var query := PhysicsShapeQueryParameters2D.new()
+				query.shape = shape
+				query.transform = Transform2D(0, global_position)
+				query.collide_with_areas = true
+				query.collide_with_bodies = true
+				var results := space.intersect_shape(query, 64)
+				var processed_enemies := {}
+				for res in results:
+					var collider = res.collider
+					var e = null
+					if collider is HurtboxComponent:
+						e = collider.owner if collider.owner != null else collider.get_parent()
+					elif collider is Node2D and collider.is_in_group("enemies"):
+						e = collider
+					if e != null and is_instance_valid(e) and e.is_in_group("enemies") and not processed_enemies.has(e):
+						processed_enemies[e] = true
+						var hurtbox = e.get_node_or_null("HurtboxComponent")
+						if hurtbox:
+							var dmg = DamageData.new(base_damage * damage_mult, DamageData.DamageType.PHYSICAL, 0.0, Vector2.ZERO, self)
+							hurtbox.receive_hit(dmg)
 		return
 
 	var input_vector := Input.get_vector("move_left", "move_right", "move_up", "move_down")
