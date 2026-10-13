@@ -11,6 +11,10 @@ size = Vector2(24, 24)
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_hurtbox"]
 size = Vector2(32, 32)
 
+
+[sub_resource type="OccluderPolygon2D" id="OccluderPolygon2D_tree"]
+polygon = PackedVector2Array(-8, -4, 8, -4, 8, 8, -8, 8)
+
 [node name="Tree" type="StaticBody2D" groups=["environment", "tree"]]
 collision_layer = 1
 collision_mask = 0
@@ -39,3 +43,6 @@ team_index = 2
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="HurtboxComponent"]
 shape = SubResource("RectangleShape2D_hurtbox")
+
+[node name="LightOccluder2D" type="LightOccluder2D" parent="."]
+occluder = SubResource("OccluderPolygon2D_tree")
