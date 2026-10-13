@@ -66,14 +66,27 @@ func _process_shield_charge(delta: float) -> void:
 		return
 
 	# Hit and stun enemies during charge
-	var tree := get_tree()
-	if tree != null:
-		var enemies := tree.get_nodes_in_group("enemies")
-		for e in enemies:
-			if e is Node2D and is_instance_valid(e):
-				var node := e as Node2D
-				if global_position.distance_to(node.global_position) <= 32.0:
-					_apply_charge_impact(node)
+	if is_inside_tree():
+		var world := get_world_2d()
+		if world != null:
+			var space_state := world.direct_space_state
+			if space_state != null:
+				var shape := CircleShape2D.new()
+				shape.radius = 32.0
+
+				var query := PhysicsShapeQueryParameters2D.new()
+				query.shape = shape
+				query.transform = Transform2D(0, global_position)
+				query.collide_with_areas = true
+				query.collide_with_bodies = true
+
+				var results := space_state.intersect_shape(query, 32)
+				var processed_enemies := {}
+				for res in results:
+					var node := res.collider as Node2D
+					if node != null and node.is_in_group("enemies") and not processed_enemies.has(node):
+						processed_enemies[node] = true
+						_apply_charge_impact(node)
 
 	if _charge_timer <= 0.0:
 		_is_charging = false
@@ -135,32 +148,46 @@ func start_shield_charge(direction: Vector2) -> void:
 func _perform_cleave() -> void:
 	_cleave_timer = cleave_cooldown
 
-	var tree := get_tree()
-	if tree == null:
+	if not is_inside_tree():
+		return
+	var world := get_world_2d()
+	if world == null:
+		return
+	var space_state := world.direct_space_state
+	if space_state == null:
 		return
 
-	var enemies := tree.get_nodes_in_group("enemies")
+	var shape := CircleShape2D.new()
+	shape.radius = cleave_range
+
+	var query := PhysicsShapeQueryParameters2D.new()
+	query.shape = shape
+	query.transform = Transform2D(0, global_position)
+	query.collide_with_areas = true
+	query.collide_with_bodies = true
+
+	var results := space_state.intersect_shape(query, 32)
+	var processed_enemies := {}
 	var hit_count := 0
 
-	for e in enemies:
-		if e is Node2D and is_instance_valid(e):
-			var node := e as Node2D
-			var dist := global_position.distance_to(node.global_position)
-			if dist <= cleave_range:
-				var hurtbox := node.get_node_or_null("HurtboxComponent") as HurtboxComponent
-				if hurtbox != null:
-					var kb_dir := (node.global_position - global_position).normalized()
-					if kb_dir == Vector2.ZERO:
-						kb_dir = Vector2.RIGHT
-					var data := DamageData.new(
-						cleave_damage,
-						DamageData.DamageType.PHYSICAL,
-						90.0,
-						kb_dir,
-						self
-					)
-					hurtbox.receive_hit(data)
-					hit_count += 1
+	for res in results:
+		var node := res.collider as Node2D
+		if node != null and node.is_in_group("enemies") and not processed_enemies.has(node):
+			processed_enemies[node] = true
+			var hurtbox := node.get_node_or_null("HurtboxComponent") as HurtboxComponent
+			if hurtbox != null:
+				var kb_dir := (node.global_position - global_position).normalized()
+				if kb_dir == Vector2.ZERO:
+					kb_dir = Vector2.RIGHT
+				var data := DamageData.new(
+					cleave_damage,
+					DamageData.DamageType.PHYSICAL,
+					90.0,
+					kb_dir,
+					self
+				)
+				hurtbox.receive_hit(data)
+				hit_count += 1
 
 	# Visual Cleave sweep arc
 	if sprite != null:
@@ -197,26 +224,61 @@ func deploy_aegis_shield() -> void:
 		_flash_tint(Color(1.0, 1.2, 2.0))
 
 func _has_enemy_closer_than(dist: float) -> bool:
-	var tree := get_tree()
-	if tree == null:
+	if not is_inside_tree():
 		return false
-	var enemies := tree.get_nodes_in_group("enemies")
-	for e in enemies:
-		if e is Node2D and is_instance_valid(e):
-			if global_position.distance_to((e as Node2D).global_position) <= dist:
-				return true
+	var world := get_world_2d()
+	if world == null:
+		return false
+	var space_state := world.direct_space_state
+	if space_state == null:
+		return false
+
+	var shape := CircleShape2D.new()
+	shape.radius = dist
+
+	var query := PhysicsShapeQueryParameters2D.new()
+	query.shape = shape
+	query.transform = Transform2D(0, global_position)
+	query.collide_with_areas = true
+	query.collide_with_bodies = true
+
+	var results := space_state.intersect_shape(query, 32)
+	for res in results:
+		var col := res.collider as Node
+		if col != null and col.is_in_group("enemies"):
+			return true
+
 	return false
 
 func _has_enemies_count_nearby(count: int, dist: float) -> bool:
-	var tree := get_tree()
-	if tree == null:
+	if not is_inside_tree():
 		return false
-	var enemies := tree.get_nodes_in_group("enemies")
+	var world := get_world_2d()
+	if world == null:
+		return false
+	var space_state := world.direct_space_state
+	if space_state == null:
+		return false
+
+	var shape := CircleShape2D.new()
+	shape.radius = dist
+
+	var query := PhysicsShapeQueryParameters2D.new()
+	query.shape = shape
+	query.transform = Transform2D(0, global_position)
+	query.collide_with_areas = true
+	query.collide_with_bodies = true
+
+	var results := space_state.intersect_shape(query, 32)
+	var processed_enemies := {}
 	var found := 0
-	for e in enemies:
-		if e is Node2D and is_instance_valid(e):
-			if global_position.distance_to((e as Node2D).global_position) <= dist:
-				found += 1
-				if found >= count:
-					return true
+
+	for res in results:
+		var col := res.collider as Node
+		if col != null and col.is_in_group("enemies") and not processed_enemies.has(col):
+			processed_enemies[col] = true
+			found += 1
+			if found >= count:
+				return true
+
 	return false
