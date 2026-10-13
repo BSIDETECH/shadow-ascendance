@@ -105,11 +105,9 @@ func _cast_spell() -> void:
 func _has_enemy_closer_than(dist: float) -> bool:
 	if not is_inside_tree():
 		return false
-
 	var world := get_world_2d()
 	if world == null:
 		return false
-
 	var space_state := world.direct_space_state
 	if space_state == null:
 		return false

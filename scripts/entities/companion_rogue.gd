@@ -177,29 +177,48 @@ func _perform_dagger_attack() -> void:
 		damage *= invis_damage_multiplier
 		_break_invisibility()
 
-	var tree := get_tree()
-	if tree == null:
+	if not is_inside_tree():
+		return
+	var world := get_world_2d()
+	if world == null:
+		return
+	var space_state := world.direct_space_state
+	if space_state == null:
 		return
 
-	var enemies := tree.get_nodes_in_group("enemies")
-	for e in enemies:
-		if e is Node2D and is_instance_valid(e):
-			var node := e as Node2D
-			var dist := global_position.distance_to(node.global_position)
-			if dist <= dagger_range:
-				var hurtbox := node.get_node_or_null("HurtboxComponent") as HurtboxComponent
-				if hurtbox != null:
-					var kb_dir := (node.global_position - global_position).normalized()
-					if kb_dir == Vector2.ZERO:
-						kb_dir = Vector2.RIGHT
-					var data := DamageData.new(
-						damage,
-						DamageData.DamageType.PHYSICAL,
-						60.0,
-						kb_dir,
-						self
-					)
-					hurtbox.receive_hit(data)
+	var shape := CircleShape2D.new()
+	shape.radius = dagger_range
+
+	var query := PhysicsShapeQueryParameters2D.new()
+	query.shape = shape
+	query.transform = Transform2D(0, global_position)
+	query.collide_with_areas = true
+	query.collide_with_bodies = true
+
+	var results := space_state.intersect_shape(query, 32)
+	var processed_enemies := {}
+
+	for res in results:
+		var col := res.collider as Node
+		if col != null and col.is_in_group("enemies") and not processed_enemies.has(col):
+			processed_enemies[col] = true
+			if col is Node2D and is_instance_valid(col):
+				var node := col as Node2D
+				var dist := global_position.distance_to(node.global_position)
+				if dist <= dagger_range:
+					var hurtbox := node.get_node_or_null("HurtboxComponent") as HurtboxComponent
+					if hurtbox != null:
+						var kb_dir := (node.global_position - global_position).normalized()
+						if kb_dir == Vector2.ZERO:
+							kb_dir = Vector2.RIGHT
+						var data := DamageData.new(
+							damage,
+							DamageData.DamageType.PHYSICAL,
+							60.0,
+							kb_dir,
+							self
+						)
+						hurtbox.receive_hit(data)
 
 	# Visual slice effect
 	if sprite != null:
