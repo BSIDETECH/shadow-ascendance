@@ -1,7 +1,7 @@
 class_name EnemyRanged
 extends Enemy
 
-var _attack_timer: float = 0.0
+var _ranged_attack_timer: float = 0.0
 var _shoot_cooldown: float = 2.5
 var enemy_projectile_scene: PackedScene = preload("res://scenes/entities/projectile/enemy_projectile.tscn")
 
@@ -48,21 +48,21 @@ func _physics_process(delta: float) -> void:
 		if distance < 120.0:
 			# Kite away
 			velocity = -direction * _current_speed
-			_attack_timer = maxf(0.0, _attack_timer - delta)
+			_ranged_attack_timer = maxf(0.0, _ranged_attack_timer - delta)
 		elif distance <= 200.0:
 			# Stop or strafe slowly, and shoot
 			velocity = Vector2.ZERO
-			_attack_timer -= delta
-			if _attack_timer <= 0.0:
+			_ranged_attack_timer -= delta
+			if _ranged_attack_timer <= 0.0:
 				_shoot()
 		else:
 			# Move towards target
 			velocity = direction * _current_speed
-			_attack_timer = maxf(0.0, _attack_timer - delta)
+			_ranged_attack_timer = maxf(0.0, _ranged_attack_timer - delta)
 	else:
 		# No LOS, approach target
 		velocity = direction * _current_speed
-		_attack_timer = maxf(0.0, _attack_timer - delta)
+		_ranged_attack_timer = maxf(0.0, _ranged_attack_timer - delta)
 
 	move_and_slide()
 
@@ -74,7 +74,7 @@ func _physics_process(delta: float) -> void:
 		sprite.flip_h = direction.x < 0.0
 
 func _shoot() -> void:
-	_attack_timer = _shoot_cooldown
+	_ranged_attack_timer = _shoot_cooldown
 	if _target == null or not is_instance_valid(_target):
 		return
 
