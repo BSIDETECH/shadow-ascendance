@@ -44,6 +44,9 @@ var _pending_order: int = 0
 var pending_order_after_hesitation: int = -1
 var _pending_target: Vector2 = Vector2.ZERO
 var is_dying: bool = false
+var downed_timer: float = 0.0
+var rescue_timer: float = 0.0
+var rescuing_target: Node2D = null
 
 var _player: Node2D = null
 var _event_bus: Node = null
@@ -103,10 +106,13 @@ func _setup_components() -> void:
 	health_component.max_health = max_health
 	health_component.current_health = max_health
 	health_component.armor_reduction = armor_reduction
+	health_component.can_be_downed = true
 	if not health_component.took_damage.is_connected(_on_health_took_damage):
 		health_component.took_damage.connect(_on_health_took_damage)
 	if not health_component.died.is_connected(_on_health_died):
 		health_component.died.connect(_on_health_died)
+	if health_component.has_signal("downed") and not health_component.downed.is_connected(_on_downed):
+		health_component.downed.connect(_on_downed)
 
 	hurtbox_component = get_node_or_null("HurtboxComponent") as HurtboxComponent
 	if hurtbox_component == null:
@@ -144,6 +150,48 @@ func _physics_process(delta: float) -> void:
 	if is_dying:
 		velocity = Vector2.ZERO
 		return
+
+	if health_component != null and health_component.get("is_downed"):
+		velocity = Vector2.ZERO
+		downed_timer -= delta
+		if downed_timer <= 0.0:
+			health_component.force_kill()
+		move_and_slide()
+		return
+	elif sprite != null and sprite.rotation != 0.0:
+		sprite.rotation = 0.0
+		sprite.modulate = Color(1.0, 1.0, 1.0, 1.0)
+
+	# Rescue logic
+	var is_rescuing = false
+	if velocity.length() < 10.0:
+		var allies = get_tree().get_nodes_in_group("allies")
+		var players = get_tree().get_nodes_in_group("player")
+		var all_friendlies = allies + players
+		var closest_downed: Node2D = null
+		var min_dist = 40.0
+		for ally in all_friendlies:
+			if ally != self and ally.has_node("HealthComponent"):
+				var hc = ally.get_node("HealthComponent")
+				if hc.get("is_downed"):
+					var d = global_position.distance_to(ally.global_position)
+					if d < min_dist:
+						min_dist = d
+						closest_downed = ally
+		if closest_downed != null:
+			if rescuing_target != closest_downed:
+				rescuing_target = closest_downed
+				rescue_timer = 0.0
+			is_rescuing = true
+			rescue_timer += delta
+			if rescue_timer >= 3.0:
+				rescuing_target.get_node("HealthComponent").heal(rescuing_target.get_node("HealthComponent").max_health * 0.5)
+				rescuing_target = null
+				rescue_timer = 0.0
+
+	if not is_rescuing:
+		rescue_timer = 0.0
+		rescuing_target = null
 
 	_update_psychology(delta)
 	_handle_order_timers(delta)
@@ -217,11 +265,30 @@ func _handle_movement(delta: float) -> void:
 				current_tactical_state = TacticalOrderState.IDLE_FOLLOW
 
 		TacticalOrderState.ORDER_HELP:
-			if dist_to_player > 28.0:
-				var dir := (_player.global_position - global_position).normalized() if dist_to_player > 0.001 else Vector2.RIGHT
-				velocity = velocity.move_toward(dir * sprint_speed, 900.0 * delta)
+			var allies = get_tree().get_nodes_in_group("allies")
+			var players = get_tree().get_nodes_in_group("player")
+			var all_friendlies = allies + players
+			var closest_downed: Node2D = null
+			var min_d = 9999.0
+			for ally in all_friendlies:
+				if ally != self and ally.has_node("HealthComponent") and ally.get_node("HealthComponent").get("is_downed"):
+					var d = global_position.distance_to(ally.global_position)
+					if d < min_d:
+						min_d = d
+						closest_downed = ally
+
+			if closest_downed != null:
+				if min_d > 28.0:
+					var dir := (closest_downed.global_position - global_position).normalized() if min_d > 0.001 else Vector2.RIGHT
+					velocity = velocity.move_toward(dir * sprint_speed, 900.0 * delta)
+				else:
+					velocity = velocity.move_toward(Vector2.ZERO, 700.0 * delta)
 			else:
-				velocity = velocity.move_toward(Vector2.ZERO, 700.0 * delta)
+				if dist_to_player > 28.0:
+					var dir := (_player.global_position - global_position).normalized() if dist_to_player > 0.001 else Vector2.RIGHT
+					velocity = velocity.move_toward(dir * sprint_speed, 900.0 * delta)
+				else:
+					velocity = velocity.move_toward(Vector2.ZERO, 700.0 * delta)
 
 	move_and_slide()
 	_update_sprite_facing()
@@ -306,6 +373,13 @@ func _flash_tint(tint: Color) -> void:
 	if tween != null:
 		tween.tween_property(sprite, "modulate", tint, 0.08)
 		tween.tween_property(sprite, "modulate", orig_color, 0.16)
+
+func _on_downed() -> void:
+	if is_dying: return
+	downed_timer = 15.0
+	if sprite != null:
+		sprite.modulate = Color(0.5, 0.5, 0.5, 1.0)
+		sprite.rotation = PI / 2.0
 
 func _on_health_took_damage(data: DamageData) -> void:
 	var amt: float = data.amount if data != null else 0.0

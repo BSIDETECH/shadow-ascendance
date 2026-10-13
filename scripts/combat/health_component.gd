@@ -8,6 +8,7 @@ signal health_changed(current: float, max_health: float)
 signal shield_changed(current: float, max_shield: float)
 signal took_damage(damage_data: DamageData)
 signal died()
+signal downed()
 signal healed(amount: float)
 signal invincibility_started()
 signal invincibility_ended()
@@ -25,6 +26,8 @@ signal invincibility_ended()
 @export var i_frame_duration: float = 0.2
 @export var is_invincible: bool = false
 @export var disable_collision_on_death: bool = true
+@export var can_be_downed: bool = false
+var is_downed: bool = false
 
 @export var shield_health: float = 0.0:
 	set(val):
@@ -98,16 +101,26 @@ func take_damage(data: DamageData) -> void:
 			eb.emit_damage_dealt(get_parent(), data)
 
 	if current_health <= 0.0:
-		_on_death()
+		if can_be_downed and not is_downed:
+			is_downed = true
+			current_health = 0.01 # Keep a tiny amount of HP so it's technically alive for healing
+			health_changed.emit(0.0, max_health) # Visual 0
+			downed.emit()
+		elif not is_downed:
+			_on_death()
 	else:
 		if i_frame_duration > 0.0 and damage_amount > 0.0:
 			_i_frame_timer = i_frame_duration
 			invincibility_started.emit()
 
 func heal(amount: float) -> void:
-	if amount <= 0.0 or not is_alive():
+	if amount <= 0.0 or (not is_alive() and not is_downed):
 		return
 	var old_health := current_health
+	if is_downed:
+		is_downed = false
+		current_health = 0.0 # Clear the 0.01
+
 	current_health = minf(max_health, current_health + amount)
 	var gained := current_health - old_health
 	if gained > 0.0:
@@ -132,7 +145,14 @@ func set_invincible_duration(duration: float) -> void:
 func reset_health() -> void:
 	current_health = max_health
 	_i_frame_timer = 0.0
+	is_downed = false
 	health_changed.emit(current_health, max_health)
+
+func force_kill() -> void:
+	if current_health > 0.0:
+		current_health = 0.0
+		health_changed.emit(current_health, max_health)
+	_on_death()
 
 func _on_death() -> void:
 	died.emit()

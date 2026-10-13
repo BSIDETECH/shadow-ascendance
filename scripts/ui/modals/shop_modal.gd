@@ -43,6 +43,8 @@ func _update_shop_list() -> void:
 
 	_add_item_to_shop("Poção de Vida", "Restaura 100 HP.", 10, "health")
 	_add_item_to_shop("Poção de Escudo", "Concede 50 de escudo.", 10, "shield")
+	_add_item_to_shop("Poção de Ressurreição", "Ressuscita um aliado caído.", 30, "revive")
+	_add_item_to_shop("Poção de Barreira", "Escudo gigante.", 20, "barrier")
 
 func _add_item_to_shop(item_name: String, description: String, cost: int, type: String) -> void:
 	var item_panel = PanelContainer.new()
@@ -93,5 +95,9 @@ func _buy_item(cost: int, type: String) -> void:
 			GameManager.add_health_potion()
 		elif type == "shield":
 			GameManager.add_shield_potion()
+		elif type == "revive":
+			GameManager.add_revive_potion()
+		elif type == "barrier":
+			GameManager.add_barrier_potion()
 		if gold_label != null:
 			gold_label.text = "Ouro: " + str(GameManager.get_gold())

@@ -84,14 +84,27 @@ func _ready() -> void:
 		var ev2 := InputEventKey.new()
 		ev2.physical_keycode = KEY_2
 		InputMap.action_add_event("use_shield_potion", ev2)
+	if not InputMap.has_action("use_revive_potion"):
+		InputMap.add_action("use_revive_potion")
+		var ev4 := InputEventKey.new()
+		ev4.physical_keycode = KEY_4
+		InputMap.action_add_event("use_revive_potion", ev4)
+	if not InputMap.has_action("use_barrier_potion"):
+		InputMap.add_action("use_barrier_potion")
+		var ev5 := InputEventKey.new()
+		ev5.physical_keycode = KEY_5
+		InputMap.action_add_event("use_barrier_potion", ev5)
 
 	add_to_group("player")
 	
 	health_component.max_health = 100.0
 	health_component.current_health = 100.0
+	health_component.can_be_downed = true
 	health_component.health_changed.connect(_on_health_changed)
 	health_component.shield_changed.connect(_on_shield_changed)
 	health_component.died.connect(_on_died)
+	if health_component.has_signal("downed"):
+		health_component.downed.connect(_on_downed)
 	
 	hurtbox_component.team_index = 0
 	hurtbox_component.health_component = health_component
@@ -124,6 +137,55 @@ func _apply_weapon_mode() -> void:
 			slash_hitbox.scale = Vector2.ONE
 
 func _physics_process(delta: float) -> void:
+	if is_dead:
+		return
+
+	_handle_items()
+
+	if health_component.is_downed:
+		velocity = Vector2.ZERO
+		downed_timer -= delta
+		if downed_timer <= 0.0:
+			health_component.force_kill()
+		move_and_slide()
+		return
+	elif sprite.rotation != 0.0: # Recover from downed visuals
+		sprite.rotation = 0.0
+		sprite.modulate = Color(1.0, 1.0, 1.0, 1.0)
+		can_attack = true
+		combat_enabled = true
+
+	# Rescue logic
+	var is_rescuing = false
+	if velocity.length() < 10.0:
+		var allies = get_tree().get_nodes_in_group("allies")
+		var players = get_tree().get_nodes_in_group("player")
+		var all_friendlies = allies + players
+		var closest_downed: Node2D = null
+		var min_dist = 40.0
+		for ally in all_friendlies:
+			if ally != self and ally.has_node("HealthComponent"):
+				var hc = ally.get_node("HealthComponent")
+				if hc.get("is_downed"):
+					var d = global_position.distance_to(ally.global_position)
+					if d < min_dist:
+						min_dist = d
+						closest_downed = ally
+		if closest_downed != null:
+			if rescuing_target != closest_downed:
+				rescuing_target = closest_downed
+				rescue_timer = 0.0
+			is_rescuing = true
+			rescue_timer += delta
+			if rescue_timer >= 3.0:
+				rescuing_target.get_node("HealthComponent").heal(rescuing_target.get_node("HealthComponent").max_health * 0.5)
+				rescuing_target = null
+				rescue_timer = 0.0
+
+	if not is_rescuing:
+		rescue_timer = 0.0
+		rescuing_target = null
+
 	_handle_mana_regen(delta)
 	_handle_timers(delta)
 	_handle_aim()
@@ -132,7 +194,6 @@ func _physics_process(delta: float) -> void:
 	_handle_fire_pulse(delta)
 	_handle_spin(delta)
 	_attract_nearby_gems()
-	_handle_items()
 
 func _handle_mana_regen(delta: float) -> void:
 	if current_mana < max_mana:
@@ -146,7 +207,37 @@ func _handle_items() -> void:
 	if Input.is_action_just_pressed("use_shield_potion"):
 		if GameManager.consume_shield_potion():
 			health_component.add_shield(50.0)
+	if Input.is_action_just_pressed("use_revive_potion"):
+		if GameManager.consume_revive_potion():
+			if health_component.is_downed:
+				health_component.heal(health_component.max_health) # Revive self
+			else:
+				# Revive nearest downed ally
+				var allies = get_tree().get_nodes_in_group("allies")
+				var players = get_tree().get_nodes_in_group("player")
+				var all_friendlies = allies + players
+				var closest_downed: Node2D = null
+				var min_dist = 9999.0
+				for ally in all_friendlies:
+					if ally != self and ally.has_node("HealthComponent") and ally.get_node("HealthComponent").get("is_downed"):
+						var d = global_position.distance_to(ally.global_position)
+						if d < min_dist:
+							min_dist = d
+							closest_downed = ally
+				if closest_downed:
+					closest_downed.get_node("HealthComponent").heal(closest_downed.get_node("HealthComponent").max_health)
+				else:
+					# Refund if no one to revive
+					GameManager.add_revive_potion()
 
+	if Input.is_action_just_pressed("use_barrier_potion"):
+		if GameManager.consume_barrier_potion():
+			var allies = get_tree().get_nodes_in_group("allies")
+			var players = get_tree().get_nodes_in_group("player")
+			var all_friendlies = allies + players
+			for ally in all_friendlies:
+				if ally.has_node("HealthComponent") and not ally.get_node("HealthComponent").get("is_downed"):
+					ally.get_node("HealthComponent").add_shield(150.0)
 
 func _handle_spin(delta: float) -> void:
 	if not spin_attack_unlocked:
@@ -516,6 +607,34 @@ func _on_shield_changed(current: float, max_shield: float) -> void:
 		sprite.modulate = Color(1.0, 1.0, 1.0, 1.0)
 
 var is_dead: bool = false
+var downed_timer: float = 0.0
+var rescue_timer: float = 0.0
+var rescuing_target: Node2D = null
+
+func _on_downed() -> void:
+	if ancestral_resurrect_unlocked and not _ancestral_used:
+		_ancestral_used = true
+		health_component.is_downed = false
+		health_component.current_health = health_component.max_health * 0.5
+		health_component.health_changed.emit(health_component.current_health, health_component.max_health)
+		# Stasis logic (pause for 2s)
+		can_attack = false
+		combat_enabled = false
+		var tw = create_tween()
+		tw.tween_callback(func():
+			can_attack = true
+			combat_enabled = true
+			health_component.is_invincible = false
+		).set_delay(2.0)
+		health_component.is_invincible = true
+		return
+
+	if is_dead: return
+	downed_timer = 15.0
+	can_attack = false
+	combat_enabled = false
+	sprite.modulate = Color(0.5, 0.5, 0.5, 1.0)
+	sprite.rotation = PI / 2.0 # Lie down visually
 
 
 func _on_died() -> void:

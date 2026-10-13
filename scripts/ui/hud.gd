@@ -66,6 +66,8 @@ func _ready() -> void:
 
 var health_potions_label: Label = null
 var shield_potions_label: Label = null
+var revive_potions_label: Label = null
+var barrier_potions_label: Label = null
 var shield_label: Label = null
 
 func _setup_potions_hud() -> void:
@@ -80,6 +82,14 @@ func _setup_potions_hud() -> void:
 	shield_potions_label.add_theme_font_size_override("font_size", 10)
 	shield_potions_label.add_theme_color_override("font_color", Color(0.4, 0.6, 1.0))
 
+	revive_potions_label = Label.new()
+	revive_potions_label.add_theme_font_size_override("font_size", 10)
+	revive_potions_label.add_theme_color_override("font_color", Color(0.4, 1.0, 0.4))
+
+	barrier_potions_label = Label.new()
+	barrier_potions_label.add_theme_font_size_override("font_size", 10)
+	barrier_potions_label.add_theme_color_override("font_color", Color(1.0, 0.8, 0.2))
+
 	shield_label = Label.new()
 	shield_label.add_theme_font_size_override("font_size", 12)
 	shield_label.add_theme_color_override("font_color", Color(0.2, 0.8, 1.0))
@@ -88,10 +98,12 @@ func _setup_potions_hud() -> void:
 	var vbox = VBoxContainer.new()
 	vbox.add_child(health_potions_label)
 	vbox.add_child(shield_potions_label)
+	vbox.add_child(revive_potions_label)
+	vbox.add_child(barrier_potions_label)
 	hp_container.get_parent().add_child(vbox)
 	hp_container.get_parent().add_child(shield_label)
 
-	_on_potions_changed(GameManager.health_potions, GameManager.shield_potions)
+	_on_potions_changed(GameManager.health_potions, GameManager.shield_potions, GameManager.revive_potions, GameManager.barrier_potions)
 
 	var eb = _get_event_bus()
 	if eb and eb.has_signal("player_shield_changed"):
@@ -100,11 +112,15 @@ func _setup_potions_hud() -> void:
 	if GameManager.has_signal("potions_changed"):
 		GameManager.potions_changed.connect(_on_potions_changed)
 
-func _on_potions_changed(health_count: int, shield_count: int) -> void:
+func _on_potions_changed(health_count: int, shield_count: int, revive_count: int = 0, barrier_count: int = 0) -> void:
 	if health_potions_label:
 		health_potions_label.text = "[1] Poções de Vida: " + str(health_count)
 	if shield_potions_label:
 		shield_potions_label.text = "[2] Poções de Escudo: " + str(shield_count)
+	if revive_potions_label:
+		revive_potions_label.text = "[4] Poções de Ressurreição: " + str(revive_count)
+	if barrier_potions_label:
+		barrier_potions_label.text = "[5] Poções de Barreira: " + str(barrier_count)
 
 func _on_shield_changed(current: float, max_shield: float) -> void:
 	if shield_label:

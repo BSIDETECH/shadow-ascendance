@@ -9,7 +9,7 @@ signal scene_transition_started(target_scene: String)
 signal scene_transition_finished(target_scene: String)
 signal party_roster_changed(new_roster: Array[Dictionary])
 signal quest_selected(rank: String)
-signal potions_changed(health_count: int, shield_count: int)
+signal potions_changed(health_count: int, shield_count: int, revive_count: int, barrier_count: int)
 
 const FADE_DURATION: float = 0.35
 const MAX_PARTY_SIZE: int = 3
@@ -24,6 +24,8 @@ var is_transitioning: bool = false
 var player_gold: int = 0
 var health_potions: int = 0
 var shield_potions: int = 0
+var revive_potions: int = 0
+var barrier_potions: int = 0
 
 # Difficulty Balancing
 var enemy_health_mult: float = 1.40
@@ -230,23 +232,45 @@ func get_gold() -> int:
 # --- Potion System ---
 func add_health_potion() -> void:
 	health_potions += 1
-	potions_changed.emit(health_potions, shield_potions)
+	potions_changed.emit(health_potions, shield_potions, revive_potions, barrier_potions)
 
 func add_shield_potion() -> void:
 	shield_potions += 1
-	potions_changed.emit(health_potions, shield_potions)
+	potions_changed.emit(health_potions, shield_potions, revive_potions, barrier_potions)
+
+func add_revive_potion() -> void:
+	revive_potions += 1
+	potions_changed.emit(health_potions, shield_potions, revive_potions, barrier_potions)
+
+func add_barrier_potion() -> void:
+	barrier_potions += 1
+	potions_changed.emit(health_potions, shield_potions, revive_potions, barrier_potions)
 
 func consume_health_potion() -> bool:
 	if health_potions > 0:
 		health_potions -= 1
-		potions_changed.emit(health_potions, shield_potions)
+		potions_changed.emit(health_potions, shield_potions, revive_potions, barrier_potions)
 		return true
 	return false
 
 func consume_shield_potion() -> bool:
 	if shield_potions > 0:
 		shield_potions -= 1
-		potions_changed.emit(health_potions, shield_potions)
+		potions_changed.emit(health_potions, shield_potions, revive_potions, barrier_potions)
+		return true
+	return false
+
+func consume_revive_potion() -> bool:
+	if revive_potions > 0:
+		revive_potions -= 1
+		potions_changed.emit(health_potions, shield_potions, revive_potions, barrier_potions)
+		return true
+	return false
+
+func consume_barrier_potion() -> bool:
+	if barrier_potions > 0:
+		barrier_potions -= 1
+		potions_changed.emit(health_potions, shield_potions, revive_potions, barrier_potions)
 		return true
 	return false
 
