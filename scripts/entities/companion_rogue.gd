@@ -200,12 +200,10 @@ func _perform_dagger_attack() -> void:
 
 	for res in results:
 		var col := res.collider as Node
-		if col != null and col.is_in_group("enemies"):
-			var node := col as Node2D
-			if node != null and not processed_enemies.has(node):
-				processed_enemies[node] = true
-
-				# Use exact distance check to match old behavior
+		if col != null and col.is_in_group("enemies") and not processed_enemies.has(col):
+			processed_enemies[col] = true
+			if col is Node2D and is_instance_valid(col):
+				var node := col as Node2D
 				var dist := global_position.distance_to(node.global_position)
 				if dist <= dagger_range:
 					var hurtbox := node.get_node_or_null("HurtboxComponent") as HurtboxComponent

@@ -33,24 +33,31 @@ func _on_body_entered(body: Node2D) -> void:
 		_explode()
 
 func _explode() -> void:
+	if not is_inside_tree():
+		return
+
 	set_physics_process(false)
 	collision_layer = 0
 	collision_mask = 0
 
-	# Deal AoE damage to all enemies within radius
+	# Deal AoE damage and compute Spread Shot using a single unified spatial query
 	var space := get_world_2d().direct_space_state
 	var shape := CircleShape2D.new()
-	shape.radius = aoe_radius
+	shape.radius = max(aoe_radius, 200.0) # Check up to max spread shot bounce distance
 
 	var query := PhysicsShapeQueryParameters2D.new()
 	query.shape = shape
 	query.transform = Transform2D(0, global_position)
-	# collision_mask 4 is set in _ready(), but to be safe and agnostic, we don't strictly constrain the mask
 	query.collide_with_areas = true
 	query.collide_with_bodies = true
 
 	var results := space.intersect_shape(query, 256)
 	var processed_enemies := {}
+
+	var p = get_tree().get_first_node_in_group("player")
+	var spread_active = p != null and p.has_meta("spread_shot_unlocked") and p.get_meta("spread_shot_unlocked") and not has_meta("is_bounced")
+	var nearest_spread_target: Node2D = null
+	var min_spread_dist = 99999.0
 
 	for res in results:
 		var collider = res.collider
@@ -64,37 +71,33 @@ func _explode() -> void:
 			target = collider as Node2D
 			hurtbox = target.get_node_or_null("HurtboxComponent") as HurtboxComponent
 
-		if target != null and hurtbox != null and target.is_in_group("enemies") and not processed_enemies.has(target):
+		if target != null and is_instance_valid(target) and target.is_in_group("enemies") and not processed_enemies.has(target):
 			processed_enemies[target] = true
-			var kb_dir := (target.global_position - global_position).normalized()
-			var data := DamageData.new(
-				damage,
-				DamageData.DamageType.FIRE,
-				90.0,
-				kb_dir,
-				self
-			)
-			hurtbox.receive_hit(data)
+			var dist := global_position.distance_to(target.global_position)
 
-	# Spread Shot logic
-	var p = get_tree().get_first_node_in_group("player")
-	if p != null and p.has_meta("spread_shot_unlocked") and p.get_meta("spread_shot_unlocked") and not has_meta("is_bounced"):
-		var nearest = null
-		var min_dist = 99999.0
-		var enemies := get_tree().get_nodes_in_group("enemies")
-		for e in enemies:
-			if e is Node2D and is_instance_valid(e) and global_position.distance_to(e.global_position) > aoe_radius:
-				var dist = global_position.distance_to(e.global_position)
-				if dist < min_dist and dist < 200.0:
-					min_dist = dist
-					nearest = e
-		if nearest != null:
-			var new_fb = load("res://scenes/entities/projectile/fireball.tscn").instantiate()
-			new_fb.global_position = global_position
-			new_fb.direction = (nearest.global_position - global_position).normalized()
-			new_fb.damage = damage
-			new_fb.set_meta("is_bounced", true)
-			get_parent().add_child(new_fb)
+			if dist <= aoe_radius:
+				if hurtbox != null:
+					var kb_dir := (target.global_position - global_position).normalized()
+					var data := DamageData.new(
+						damage,
+						DamageData.DamageType.FIRE,
+						90.0,
+						kb_dir,
+						self
+					)
+					hurtbox.receive_hit(data)
+			elif spread_active and dist < min_spread_dist and dist < 200.0:
+				min_spread_dist = dist
+				nearest_spread_target = target
+
+	# Spread Shot bounce logic
+	if spread_active and nearest_spread_target != null:
+		var new_fb = load("res://scenes/entities/projectile/fireball.tscn").instantiate()
+		new_fb.global_position = global_position
+		new_fb.direction = (nearest_spread_target.global_position - global_position).normalized()
+		new_fb.damage = damage
+		new_fb.set_meta("is_bounced", true)
+		get_parent().add_child(new_fb)
 
 	# Explosion visual pop
 	var tween := create_tween()
