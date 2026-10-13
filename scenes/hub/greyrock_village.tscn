@@ -2,9 +2,9 @@
 
 [ext_resource type="Script" path="res://scripts/hub/greyrock_village.gd" id="1_village"]
 [ext_resource type="Texture2D" path="res://assets/kenney_tiny_dungeon/Tiles/tile_0048.png" id="2_soil"]
-[ext_resource type="Texture2D" path="res://assets/kenney_tiny_dungeon/Tiles/tile_0037.png" id="3_cobble"]
+[ext_resource type="Texture2D" path="res://assets/kenney_tiny_dungeon/Tiles/materials/tile_0037_mat.tres" id="3_cobble"]
 [ext_resource type="Texture2D" path="res://assets/kenney_tiny_dungeon/Tiles/tile_0042.png" id="4_stepping"]
-[ext_resource type="Texture2D" path="res://assets/kenney_tiny_dungeon/Tiles/tile_0040.png" id="5_stone_wall"]
+[ext_resource type="Texture2D" path="res://assets/kenney_tiny_dungeon/Tiles/materials/tile_0040_mat.tres" id="5_stone_wall"]
 [ext_resource type="Texture2D" path="res://assets/kenney_tiny_dungeon/Tiles/tile_0000.png" id="6_roof_red"]
 [ext_resource type="Texture2D" path="res://assets/kenney_tiny_dungeon/Tiles/tile_0001.png" id="7_roof_shingle"]
 [ext_resource type="Texture2D" path="res://assets/kenney_tiny_dungeon/Tiles/tile_0045.png" id="8_door_wood"]
@@ -16,13 +16,13 @@
 [ext_resource type="Texture2D" path="res://assets/kenney_tiny_dungeon/Tiles/tile_0089.png" id="14_crate"]
 [ext_resource type="Texture2D" path="res://assets/kenney_tiny_dungeon/Tiles/tile_0072.png" id="15_table"]
 [ext_resource type="Texture2D" path="res://assets/kenney_tiny_dungeon/Tiles/tile_0073.png" id="16_stool"]
-[ext_resource type="Texture2D" path="res://assets/kenney_tiny_dungeon/Tiles/tile_0014.png" id="17_well"]
+[ext_resource type="Texture2D" path="res://assets/kenney_tiny_dungeon/Tiles/materials/tile_0014_mat.tres" id="17_well"]
 [ext_resource type="Texture2D" path="res://assets/kenney_tiny_dungeon/Tiles/tile_0019.png" id="18_altar"]
 [ext_resource type="Texture2D" path="res://assets/kenney_tiny_dungeon/Tiles/tile_0065.png" id="19_tablet"]
 [ext_resource type="Texture2D" path="res://assets/kenney_tiny_dungeon/Tiles/tile_0030.png" id="20_pillar"]
 [ext_resource type="Texture2D" path="res://assets/kenney_tiny_dungeon/Tiles/tile_0131.png" id="21_torch"]
 [ext_resource type="Texture2D" path="res://assets/kenney_tiny_dungeon/Tiles/tile_0129.png" id="22_violet_torch"]
-[ext_resource type="Texture2D" path="res://assets/kenney_tiny_dungeon/Tiles/tile_0038.png" id="23_cracked_stone"]
+[ext_resource type="Texture2D" path="res://assets/kenney_tiny_dungeon/Tiles/materials/tile_0038_mat.tres" id="23_cracked_stone"]
 [ext_resource type="PackedScene" path="res://scenes/entities/player/player.tscn" id="24_player"]
 [ext_resource type="PackedScene" path="res://scenes/hub/npc_elena.tscn" id="25_elena"]
 [ext_resource type="PackedScene" path="res://scenes/hub/npc_barnaby.tscn" id="26_barnaby"]
@@ -378,3 +378,6 @@ horizontal_alignment = 1
 [node name="ShopModal" parent="UI" instance=ExtResource("29_shop_modal")]
 
 [node name="TavernRecruitModal" parent="UI" instance=ExtResource("29_tavern_modal")]
+
+[node name="LightingModulate" type="CanvasModulate" parent="."]
+color = Color(0.15, 0.15, 0.25, 1)
