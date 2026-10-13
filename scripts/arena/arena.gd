@@ -255,6 +255,10 @@ func _on_enemy_died(_pos: Vector2, _xp: int) -> void:
 	_total_kills += 1
 	hud.update_kills(_total_kills)
 
+	var tracker = get_tree().root.get_node_or_null("SilentAgencyTracker")
+	if tracker != null and tracker.has_method("record_kill"):
+		tracker.call("record_kill")
+
 func _on_boss_died(boss_name: String, _pos: Vector2) -> void:
 	var gm = get_tree().root.get_node_or_null("GameManager")
 	if gm != null:
