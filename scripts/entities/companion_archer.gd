@@ -62,27 +62,61 @@ func _physics_process(delta: float) -> void:
 	super._physics_process(delta)
 
 func _check_proximity_threat() -> bool:
-	var tree := get_tree()
-	if tree == null:
+	if not is_inside_tree():
 		return false
-	var enemies := tree.get_nodes_in_group("enemies")
-	for e in enemies:
-		if e is Node2D and is_instance_valid(e):
-			if global_position.distance_to((e as Node2D).global_position) <= tumble_proximity:
-				return true
+	var world := get_world_2d()
+	if world == null:
+		return false
+	var space_state := world.direct_space_state
+	if space_state == null:
+		return false
+
+	var shape := CircleShape2D.new()
+	shape.radius = tumble_proximity
+
+	var query := PhysicsShapeQueryParameters2D.new()
+	query.shape = shape
+	query.transform = Transform2D(0, global_position)
+	query.collide_with_areas = true
+	query.collide_with_bodies = true
+
+	var results := space_state.intersect_shape(query, 32)
+	for res in results:
+		var col := res.collider as Node
+		if col != null and col.is_in_group("enemies"):
+			return true
 	return false
 
 func _trigger_tumble_evasion() -> void:
-	var tree := get_tree()
-	if tree == null:
+	if not is_inside_tree():
 		return
-	var enemies := tree.get_nodes_in_group("enemies")
+	var world := get_world_2d()
+	if world == null:
+		return
+	var space_state := world.direct_space_state
+	if space_state == null:
+		return
+
+	var shape := CircleShape2D.new()
+	shape.radius = tumble_proximity
+
+	var query := PhysicsShapeQueryParameters2D.new()
+	query.shape = shape
+	query.transform = Transform2D(0, global_position)
+	query.collide_with_areas = true
+	query.collide_with_bodies = true
+
+	var results := space_state.intersect_shape(query, 32)
 	var evade_vector := Vector2.ZERO
-	for e in enemies:
-		if e is Node2D and is_instance_valid(e):
-			var dist := global_position.distance_to((e as Node2D).global_position)
+	var processed_enemies := {}
+
+	for res in results:
+		var col := res.collider as Node2D
+		if col != null and col.is_in_group("enemies") and not processed_enemies.has(col):
+			processed_enemies[col] = true
+			var dist := global_position.distance_to(col.global_position)
 			if dist <= tumble_proximity and dist > 0.001:
-				evade_vector += (global_position - (e as Node2D).global_position).normalized()
+				evade_vector += (global_position - col.global_position).normalized()
 
 	if evade_vector == Vector2.ZERO:
 		evade_vector = -velocity.normalized() if velocity != Vector2.ZERO else Vector2.LEFT
@@ -173,12 +207,28 @@ func _place_slow_trap() -> void:
 			parent.add_child(trap)
 
 func _has_enemy_closer_than(dist: float) -> bool:
-	var tree := get_tree()
-	if tree == null:
+	if not is_inside_tree():
 		return false
-	var enemies := tree.get_nodes_in_group("enemies")
-	for e in enemies:
-		if e is Node2D and is_instance_valid(e):
-			if global_position.distance_to((e as Node2D).global_position) <= dist:
-				return true
+	var world := get_world_2d()
+	if world == null:
+		return false
+	var space_state := world.direct_space_state
+	if space_state == null:
+		return false
+
+	var shape := CircleShape2D.new()
+	shape.radius = dist
+
+	var query := PhysicsShapeQueryParameters2D.new()
+	query.shape = shape
+	query.transform = Transform2D(0, global_position)
+	query.collide_with_areas = true
+	query.collide_with_bodies = true
+
+	var results := space_state.intersect_shape(query, 32)
+	for res in results:
+		var col := res.collider as Node
+		if col != null and col.is_in_group("enemies"):
+			return true
+
 	return false

@@ -336,40 +336,51 @@ func _on_health_died() -> void:
 		death_tween.tween_callback(queue_free)
 
 func _select_combat_target(search_radius: float = 260.0) -> Node2D:
-	var tree := get_tree()
-	if tree == null:
+	if not is_inside_tree():
 		return null
-	var enemies := tree.get_nodes_in_group("enemies")
-	if enemies.is_empty():
+	var world := get_world_2d()
+	if world == null:
 		return null
+	var space_state := world.direct_space_state
+	if space_state == null:
+		return null
+
+	var query_radius := search_radius
+	var query_pos := global_position
+
+	match current_tactical_state:
+		TacticalOrderState.ORDER_HELP:
+			query_pos = _player.global_position if (_player != null and is_instance_valid(_player)) else global_position
+			query_radius = search_radius * 1.3
+		TacticalOrderState.ORDER_ATTACK:
+			query_pos = order_target_position
+			query_radius = search_radius * 1.4
+		_:
+			pass
+
+	var shape := CircleShape2D.new()
+	shape.radius = query_radius
+
+	var query := PhysicsShapeQueryParameters2D.new()
+	query.shape = shape
+	query.transform = Transform2D(0, query_pos)
+	query.collide_with_areas = true
+	query.collide_with_bodies = true
+
+	var results := space_state.intersect_shape(query, 32)
 
 	var best_target: Node2D = null
 	var min_score: float = 999999.0
 
-	match current_tactical_state:
-		TacticalOrderState.ORDER_HELP:
-			var ref_pos := _player.global_position if (_player != null and is_instance_valid(_player)) else global_position
-			for e in enemies:
-				if e is Node2D and is_instance_valid(e):
-					var d := ref_pos.distance_to((e as Node2D).global_position)
-					if d < search_radius * 1.3 and d < min_score:
-						min_score = d
-						best_target = e as Node2D
+	var processed_enemies := {}
 
-		TacticalOrderState.ORDER_ATTACK:
-			for e in enemies:
-				if e is Node2D and is_instance_valid(e):
-					var d := order_target_position.distance_to((e as Node2D).global_position)
-					if d < search_radius * 1.4 and d < min_score:
-						min_score = d
-						best_target = e as Node2D
-
-		_:
-			for e in enemies:
-				if e is Node2D and is_instance_valid(e):
-					var d := global_position.distance_to((e as Node2D).global_position)
-					if d < search_radius and d < min_score:
-						min_score = d
-						best_target = e as Node2D
+	for res in results:
+		var col := res.collider as Node2D
+		if col != null and col.is_in_group("enemies") and not processed_enemies.has(col):
+			processed_enemies[col] = true
+			var d := query_pos.distance_to(col.global_position)
+			if d < min_score:
+				min_score = d
+				best_target = col
 
 	return best_target
