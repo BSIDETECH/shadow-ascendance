@@ -1,7 +1,7 @@
 class_name Enemy
 extends CharacterBody2D
 
-enum EnemyType { SKELETON, SLIME, BAT, DEMON_BOSS, RANGED }
+enum EnemyType { SKELETON, SLIME, BAT, DEMON_BOSS, RANGED, MIMIC }
 
 @export var enemy_type: EnemyType = EnemyType.SKELETON
 @export var base_speed: float = 70.0
@@ -17,6 +17,12 @@ var _stun_timer: float = 0.0
 var _slow_timer: float = 0.0
 var _slow_factor: float = 0.0
 var _slime_jump_timer: float = 0.0
+
+# Attack variables
+enum AttackState { IDLE, TELEGRAPH, ATTACKING, COOLDOWN }
+var _attack_state: AttackState = AttackState.IDLE
+var _attack_timer: float = 0.0
+var _mimic_awake: bool = false
 
 @onready var sprite: Sprite2D = $Sprite2D
 @onready var health_component: HealthComponent = $HealthComponent
@@ -40,6 +46,7 @@ func _ready() -> void:
 	hitbox_component.team_index = 1 # Enemy team
 	hitbox_component.periodic_damage = true
 	hitbox_component.tick_interval = 0.4
+	hitbox_component.set_deferred("monitoring", false)
 
 	hurtbox_component.team_index = 1
 	hurtbox_component.health_component = health_component
@@ -101,6 +108,14 @@ func _setup_type_attributes() -> void:
 			sprite.texture = load("res://assets/kenney_tiny_dungeon/Tiles/tile_0093.png")
 			scale = Vector2.ONE
 			modulate = Color.WHITE
+		EnemyType.MIMIC:
+			base_speed = 100.0
+			max_health = 45.0
+			contact_damage = 15.0
+			xp_reward = 3
+			sprite.texture = load("res://assets/kenney_tiny_dungeon/Tiles/tile_0089.png")
+			scale = Vector2.ONE
+			modulate = Color.WHITE
 
 	var tree := get_tree()
 	if tree != null and tree.root != null:
@@ -119,6 +134,10 @@ func _setup_type_attributes() -> void:
 		health_component.current_health = max_health
 	if hitbox_component != null:
 		hitbox_component.damage_amount = contact_damage
+		if enemy_type == EnemyType.SLIME or enemy_type == EnemyType.DEMON_BOSS or enemy_type == EnemyType.RANGED:
+			hitbox_component.set_deferred("monitoring", true)
+		else:
+			hitbox_component.set_deferred("monitoring", false)
 
 func _find_target() -> void:
 	var players := get_tree().get_nodes_in_group("player")
@@ -166,24 +185,96 @@ func _physics_process(delta: float) -> void:
 		return
 
 	var direction := (_target.global_position - global_position).normalized()
+	var distance := global_position.distance_to(_target.global_position)
 
-	if enemy_type == EnemyType.SLIME:
-		_slime_jump_timer -= delta
-		if _slime_jump_timer <= 0.0:
-			# Aplicamos o impulso diretamente na variável _knockback_velocity
-			# O bloco de código que decai o knockback fará a gosma pular
-			_knockback_velocity = direction * (_current_speed * 4.0)
-			_slime_jump_timer = 1.5
+	if enemy_type == EnemyType.SLIME or enemy_type == EnemyType.DEMON_BOSS:
+		if enemy_type == EnemyType.SLIME:
+			_slime_jump_timer -= delta
+			if _slime_jump_timer <= 0.0:
+				_knockback_velocity = direction * (_current_speed * 4.0)
+				_slime_jump_timer = 1.5
+			velocity = Vector2.ZERO
+		else:
+			velocity = direction * _current_speed
+		move_and_slide()
+		if direction.x != 0.0:
+			sprite.flip_h = direction.x < 0.0
+		return
 
-		# A gosma não se move de forma linear
-		velocity = Vector2.ZERO
+	# State machine for attackers (SKELETON, BAT, MIMIC)
+	if enemy_type == EnemyType.RANGED:
+		# Ranged has its own class extending Enemy and overriding physics process
+		pass
 	else:
-		velocity = direction * _current_speed
+		match _attack_state:
+			AttackState.IDLE:
+				if enemy_type == EnemyType.MIMIC and not _mimic_awake:
+					velocity = Vector2.ZERO
+					if distance < 60.0:
+						_mimic_awake = true
+						sprite.texture = load("res://assets/kenney_tiny_dungeon/Tiles/tile_0091.png")
+						_attack_state = AttackState.TELEGRAPH
+						_attack_timer = 0.4
+				elif distance < 45.0 and (enemy_type == EnemyType.SKELETON or enemy_type == EnemyType.MIMIC):
+					velocity = Vector2.ZERO
+					_attack_state = AttackState.TELEGRAPH
+					_attack_timer = 0.5
+				elif distance < 80.0 and enemy_type == EnemyType.BAT:
+					velocity = Vector2.ZERO
+					_attack_state = AttackState.TELEGRAPH
+					_attack_timer = 0.6
+				else:
+					if enemy_type == EnemyType.MIMIC and not _mimic_awake:
+						velocity = Vector2.ZERO
+					else:
+						velocity = direction * _current_speed
+			AttackState.TELEGRAPH:
+				velocity = Vector2.ZERO
+				_attack_timer -= delta
+
+				# Telegraphing visuals
+				if enemy_type == EnemyType.BAT:
+					sprite.rotation = sin(Time.get_ticks_msec() * 0.05) * 0.2
+				elif enemy_type == EnemyType.SKELETON or enemy_type == EnemyType.MIMIC:
+					sprite.position.y = -2.0 if int(Time.get_ticks_msec() * 0.01) % 2 == 0 else 0.0
+
+				if _attack_timer <= 0.0:
+					_attack_state = AttackState.ATTACKING
+					sprite.rotation = 0.0
+					sprite.position.y = 0.0
+					hitbox_component.set_deferred("monitoring", true)
+
+					if enemy_type == EnemyType.BAT or enemy_type == EnemyType.MIMIC:
+						_knockback_velocity = direction * (_current_speed * (5.0 if enemy_type == EnemyType.BAT else 6.0))
+						_attack_timer = 0.3
+					else:
+						# SKELETON LUNGE
+						_knockback_velocity = direction * (_current_speed * 2.0)
+						_attack_timer = 0.2
+
+					var tween := create_tween()
+					tween.tween_property(sprite, "scale", Vector2(1.2, 0.8), 0.05)
+					tween.tween_property(sprite, "scale", Vector2.ONE, 0.1)
+
+			AttackState.ATTACKING:
+				_attack_timer -= delta
+				if _attack_timer <= 0.0:
+					hitbox_component.set_deferred("monitoring", false)
+					_attack_state = AttackState.COOLDOWN
+					_attack_timer = 1.0 if enemy_type == EnemyType.SKELETON else 1.5
+
+			AttackState.COOLDOWN:
+				_attack_timer -= delta
+				if enemy_type == EnemyType.MIMIC and not _mimic_awake:
+					velocity = Vector2.ZERO
+				else:
+					velocity = direction * (_current_speed * 0.5) # Move slower during cooldown
+				if _attack_timer <= 0.0:
+					_attack_state = AttackState.IDLE
 
 	move_and_slide()
 
-	# Flip sprite based on movement
-	if direction.x != 0.0:
+	if direction.x != 0.0 and _attack_state != AttackState.TELEGRAPH:
 		sprite.flip_h = direction.x < 0.0
 
 func _on_took_damage(data: DamageData) -> void:

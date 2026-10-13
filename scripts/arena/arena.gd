@@ -183,24 +183,28 @@ func _spawn_wave() -> void:
 			type = Enemy.EnemyType.SLIME if randf() < 0.6 else Enemy.EnemyType.BAT
 		elif _game_time < 60.0:
 			var roll := randf()
-			if roll < 0.4:
+			if roll < 0.35:
 				type = Enemy.EnemyType.SKELETON
-			elif roll < 0.65:
+			elif roll < 0.55:
 				type = Enemy.EnemyType.SLIME
-			elif roll < 0.85:
+			elif roll < 0.75:
 				type = Enemy.EnemyType.BAT
-			else:
+			elif roll < 0.90:
 				type = Enemy.EnemyType.RANGED
+			else:
+				type = Enemy.EnemyType.MIMIC
 		else:
 			var roll := randf()
-			if roll < 0.4:
+			if roll < 0.35:
 				type = Enemy.EnemyType.SKELETON
-			elif roll < 0.65:
+			elif roll < 0.60:
 				type = Enemy.EnemyType.BAT
-			elif roll < 0.8:
+			elif roll < 0.75:
 				type = Enemy.EnemyType.SLIME
-			else:
+			elif roll < 0.90:
 				type = Enemy.EnemyType.RANGED
+			else:
+				type = Enemy.EnemyType.MIMIC
 
 		var enemy = null
 		if type == Enemy.EnemyType.RANGED and enemy_ranged_scene != null:
