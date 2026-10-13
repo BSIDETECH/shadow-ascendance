@@ -69,7 +69,7 @@ static func create_type(type_id: int) -> EnneagramData:
 	return create_preset(type_id as Type)
 
 static func create_preset(p_type: Type) -> EnneagramData:
-	var d := EnneagramData.new()
+	var d: EnneagramData = load("res://scripts/personality/enneagram_data.gd").new()
 	d.enneagram_type = p_type
 
 	match p_type:

@@ -31,6 +31,7 @@ func _start_runner() -> void:
 	await _run_relic_tests()
 	await _run_economy_tests()
 	await _run_dialogue_card_tests()
+	await _run_enneagram_tests()
 
 	var elapsed_ms := Time.get_ticks_msec() - start_time
 	_print_summary(elapsed_ms)
@@ -277,3 +278,15 @@ func _run_dialogue_card_tests() -> void:
 		await suite.run_all(self)
 	else:
 		record_fail("Dialogue Card Suite", "run_all method missing on test_dialogue_card")
+
+func _run_enneagram_tests() -> void:
+	print("\n--- [ENNEAGRAM DATA TESTS] ---")
+	if not ResourceLoader.exists("res://tests/test_enneagram_data.gd"):
+		record_fail("Enneagram Data Harness", "tests/test_enneagram_data.gd not found")
+		return
+	var TestClass = load("res://tests/test_enneagram_data.gd")
+	var tc = TestClass.new()
+	if tc.has_method("run_all"):
+		await tc.run_all(self)
+	else:
+		record_fail("Enneagram Data Harness", "run_all method missing on test_enneagram_data")
