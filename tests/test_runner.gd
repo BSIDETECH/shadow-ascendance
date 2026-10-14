@@ -32,6 +32,7 @@ func _start_runner() -> void:
 	await _run_economy_tests()
 	await _run_dialogue_card_tests()
 	await _run_enneagram_tests()
+	await _run_game_manager_transitions_tests()
 
 	var elapsed_ms := Time.get_ticks_msec() - start_time
 	_print_summary(elapsed_ms)
@@ -290,3 +291,15 @@ func _run_enneagram_tests() -> void:
 		await tc.run_all(self)
 	else:
 		record_fail("Enneagram Data Harness", "run_all method missing on test_enneagram_data")
+
+func _run_game_manager_transitions_tests() -> void:
+	print("\n--- [GAME MANAGER TRANSITIONS TESTS] ---")
+	if not ResourceLoader.exists("res://tests/test_game_manager_transitions.gd"):
+		record_fail("GameManager Transitions Tests", "tests/test_game_manager_transitions.gd not found")
+		return
+	var GMTransitionsClass = load("res://tests/test_game_manager_transitions.gd")
+	var tc = GMTransitionsClass.new()
+	if tc.has_method("run_all"):
+		await tc.run_all(self)
+	else:
+		record_fail("GameManager Transitions Tests", "run_all method missing")
