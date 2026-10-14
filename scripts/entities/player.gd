@@ -31,6 +31,7 @@ var _fire_pulse_timer: float = 0.0
 var executioner_unlocked: bool = false
 var kill_counter: int = 0
 @export var weapon_unlocked: bool = false # Starts unarmed: single-target punch ("soquinho")
+var current_weapon: WeaponData = null
 
 # New Gacha Flags
 var vorpal_sword_unlocked: bool = false
@@ -127,16 +128,40 @@ func _ready() -> void:
 	EventBus.emit_player_mana_changed(current_mana, max_mana)
 
 func unlock_weapon() -> void:
+	if current_weapon == null:
+		equip_weapon(WeaponData.create_dual_daggers())
+	else:
+		weapon_unlocked = true
+		_apply_weapon_mode()
+
+func equip_weapon(weapon: WeaponData) -> void:
+	if weapon == null:
+		return
+	current_weapon = weapon
 	weapon_unlocked = true
+	base_damage = weapon.base_damage
+	attack_cooldown = weapon.attack_cooldown
 	_apply_weapon_mode()
 
 func _apply_weapon_mode() -> void:
 	if slash_collision != null:
-		slash_collision.polygon = WEAPON_POLYGON if weapon_unlocked else PUNCH_POLYGON
+		if weapon_unlocked and current_weapon != null:
+			slash_collision.polygon = current_weapon.hitbox_polygon
+		else:
+			slash_collision.polygon = WEAPON_POLYGON if weapon_unlocked else PUNCH_POLYGON
 	if slash_visual != null:
-		slash_visual.polygon = WEAPON_POLYGON if weapon_unlocked else PUNCH_POLYGON
+		if weapon_unlocked and current_weapon != null:
+			slash_visual.polygon = current_weapon.hitbox_polygon
+			slash_visual.color = current_weapon.slash_color
+		else:
+			slash_visual.polygon = WEAPON_POLYGON if weapon_unlocked else PUNCH_POLYGON
 	if slash_hitbox != null:
-		slash_hitbox.damage_type = DamageData.DamageType.DARK if weapon_unlocked else DamageData.DamageType.PHYSICAL
+		if weapon_unlocked and current_weapon != null:
+			slash_hitbox.damage_type = current_weapon.damage_type
+			slash_hitbox.damage_amount = current_weapon.base_damage
+		else:
+			slash_hitbox.damage_type = DamageData.DamageType.DARK if weapon_unlocked else DamageData.DamageType.PHYSICAL
+			slash_hitbox.damage_amount = base_damage
 		if vorpal_sword_unlocked:
 			slash_hitbox.scale = Vector2(1.25, 1.25)
 		else:
@@ -485,11 +510,17 @@ func _execute_shadow_slash() -> void:
 			slash_visual.visible = false
 		)
 	else:
-		# Weapon Unlocked: Wide crescent shadow blade slash
-		slash_visual.scale = Vector2(0.6, 0.6)
-		slash_visual.modulate = Color(2.0, 0.3, 0.5, 1.0) if (executioner_unlocked and current_damage > base_damage * damage_mult) else Color(1.2, 0.4, 1.8, 1.0)
+		# Weapon Unlocked: Dynamic weapon scaling and colors
+		var start_scale: Vector2 = current_weapon.visual_scale_start if current_weapon != null else Vector2(0.6, 0.6)
+		var end_scale: Vector2 = current_weapon.visual_scale_end if current_weapon != null else Vector2(1.2, 1.2)
+		var w_color: Color = current_weapon.slash_color if current_weapon != null else Color(1.2, 0.4, 1.8, 1.0)
+		if executioner_unlocked and current_damage > base_damage * damage_mult:
+			w_color = Color(2.0, 0.3, 0.5, 1.0)
+
+		slash_visual.scale = start_scale
+		slash_visual.modulate = w_color
 		var tween := create_tween()
-		tween.tween_property(slash_visual, "scale", Vector2(1.2, 1.2), 0.08)
+		tween.tween_property(slash_visual, "scale", end_scale, 0.08)
 		tween.parallel().tween_property(slash_visual, "modulate:a", 0.0, 0.12)
 		tween.tween_callback(func():
 			slash_hitbox.monitoring = false

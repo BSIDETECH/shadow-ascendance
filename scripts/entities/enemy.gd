@@ -24,6 +24,32 @@ var _attack_state: AttackState = AttackState.IDLE
 var _attack_timer: float = 0.0
 var _mimic_awake: bool = false
 
+# Behavior & Monster Dialect states
+enum BehaviorState { ADVANCING, ATTACKING, RETREATING_FOR_HELP, FRENZY }
+var behavior_state: BehaviorState = BehaviorState.ADVANCING
+var _frenzy_timer: float = 0.0
+var _original_modulate: Color = Color.WHITE
+
+const DIALECTS_PANIC: Array[String] = [
+	"*SKRR-KZZT! Ghol'mak!*",
+	"*URK-GRAA! MASH'DAR!*",
+	"*KREEE! NOK-ZHOR!*",
+	"*SSHHH-KLIK! VHO'TOR!*"
+]
+
+const DIALECTS_FRENZY: Array[String] = [
+	"*VHOR-KASH!*",
+	"*DRAK-ZUL!*",
+	"*THOR'GAT!*",
+	"*GRAAAGH-ZOR!*"
+]
+
+const DIALECTS_TACTICAL: Array[String] = [
+	"*Tzk-tzk... Zhor'el!*",
+	"*Kzzz-kzzz!*",
+	"*Mor'gath!*"
+]
+
 @onready var sprite: Sprite2D = $Sprite2D
 @onready var health_component: HealthComponent = $HealthComponent
 @onready var hurtbox_component: HurtboxComponent = $HurtboxComponent
@@ -138,6 +164,46 @@ func _setup_type_attributes() -> void:
 			hitbox_component.set_deferred("monitoring", true)
 		else:
 			hitbox_component.set_deferred("monitoring", false)
+	_original_modulate = modulate
+
+func speak_dialect(text: String, bubble_color: Color = Color(1.0, 0.4, 0.4)) -> void:
+	if not is_inside_tree():
+		return
+	var label := Label.new()
+	label.text = text
+	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	label.add_theme_font_size_override("font_size", 9)
+	label.add_theme_color_override("font_color", bubble_color)
+	label.add_theme_color_override("font_outline_color", Color.BLACK)
+	label.add_theme_constant_override("outline_size", 2)
+	label.position = Vector2(-50, -28)
+	label.custom_minimum_size = Vector2(100, 16)
+	label.z_index = 25
+	add_child(label)
+
+	var tween := create_tween()
+	tween.tween_property(label, "position:y", label.position.y - 14.0, 1.1)
+	tween.parallel().tween_property(label, "modulate:a", 0.0, 1.1).set_delay(0.4)
+	tween.tween_callback(label.queue_free)
+
+	var is_flee = (behavior_state == BehaviorState.RETREATING_FOR_HELP)
+	if EventBus != null and EventBus.has_signal("monster_shriek"):
+		EventBus.emit_monster_shriek(global_position, text, is_flee)
+
+func trigger_frenzy() -> void:
+	if _is_dying or enemy_type == EnemyType.DEMON_BOSS or behavior_state == BehaviorState.RETREATING_FOR_HELP:
+		return
+	behavior_state = BehaviorState.FRENZY
+	_frenzy_timer = 3.5
+	modulate = Color(1.4, 0.5, 0.5)
+	speak_dialect(DIALECTS_FRENZY[randi() % DIALECTS_FRENZY.size()], Color(1.0, 0.3, 0.3))
+
+func trigger_retreat_for_help() -> void:
+	if _is_dying or enemy_type == EnemyType.DEMON_BOSS or behavior_state == BehaviorState.RETREATING_FOR_HELP:
+		return
+	behavior_state = BehaviorState.RETREATING_FOR_HELP
+	modulate = Color(0.7, 0.9, 1.3)
+	speak_dialect(DIALECTS_PANIC[randi() % DIALECTS_PANIC.size()], Color(0.4, 0.9, 1.0))
 
 func _find_target() -> void:
 	var players := get_tree().get_nodes_in_group("player")
@@ -186,6 +252,34 @@ func _physics_process(delta: float) -> void:
 
 	var direction := (_target.global_position - global_position).normalized()
 	var distance := global_position.distance_to(_target.global_position)
+
+	# Flee state: run away from target and try to escape to call the boss!
+	if behavior_state == BehaviorState.RETREATING_FOR_HELP:
+		var retreat_dir := -direction
+		velocity = retreat_dir * (_current_speed * 1.35)
+		move_and_slide()
+		if retreat_dir.x != 0.0:
+			sprite.flip_h = retreat_dir.x < 0.0
+
+		# Check if escaped off the arena bounds to call boss
+		if abs(global_position.x) >= 540.0 or abs(global_position.y) >= 350.0:
+			if EventBus != null and EventBus.has_signal("enemy_escaped_calling_boss"):
+				EventBus.emit_enemy_escaped_calling_boss(global_position)
+			set_physics_process(false)
+			var esc_tween := create_tween()
+			esc_tween.tween_property(self, "modulate:a", 0.0, 0.2)
+			esc_tween.tween_callback(queue_free)
+			return
+		return
+
+	# Frenzy state duration decay & speed boost
+	if behavior_state == BehaviorState.FRENZY:
+		_frenzy_timer -= delta
+		_current_speed = base_speed * 1.25
+		if _frenzy_timer <= 0.0:
+			behavior_state = BehaviorState.ADVANCING
+			modulate = _original_modulate
+			_current_speed = base_speed
 
 	if enemy_type == EnemyType.SLIME or enemy_type == EnemyType.DEMON_BOSS:
 		if enemy_type == EnemyType.SLIME:
@@ -297,10 +391,39 @@ func _on_took_damage(data: DamageData) -> void:
 	tween.tween_property(sprite, "scale", Vector2(1.3, 0.7), 0.05)
 	tween.tween_property(sprite, "scale", Vector2.ONE, 0.08)
 
+	# Dynamic Retreat/Panic trigger if HP gets critical (< 38%)
+	if not _is_dying and enemy_type != EnemyType.DEMON_BOSS and behavior_state != BehaviorState.RETREATING_FOR_HELP:
+		if health_component.current_health <= max_health * 0.38:
+			if randf() < 0.50:
+				trigger_retreat_for_help()
+
 func _on_died() -> void:
 	if _is_dying:
 		return
 	_is_dying = true
+
+	# Nearby allies chain reaction (frenzy or panic)
+	var tree := get_tree()
+	if tree != null:
+		var allies := tree.get_nodes_in_group("enemies")
+		for ally in allies:
+			if ally != self and is_instance_valid(ally) and ally is Enemy and not ally._is_dying:
+				if ally.global_position.distance_to(global_position) <= 130.0:
+					if ally.health_component.current_health <= ally.max_health * 0.35:
+						if randf() < 0.45:
+							ally.trigger_retreat_for_help()
+					elif ally.behavior_state == BehaviorState.ADVANCING:
+						if randf() < 0.35:
+							ally.trigger_frenzy()
+
+	# Intercepted bonus if minion was running away to call boss!
+	if behavior_state == BehaviorState.RETREATING_FOR_HELP:
+		xp_reward += 2
+		if tree != null and tree.root != null:
+			var gm = tree.root.get_node_or_null("GameManager")
+			if gm != null and gm.has_method("add_gold"):
+				gm.call("add_gold", 4)
+
 	if enemy_type == EnemyType.DEMON_BOSS:
 		EventBus.emit_boss_died("Demônio Abissal", global_position)
 

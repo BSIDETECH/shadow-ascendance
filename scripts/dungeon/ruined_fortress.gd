@@ -53,8 +53,10 @@ func _ready() -> void:
 
 	var gm = get_tree().root.get_node_or_null("GameManager")
 	if gm != null and gm.has_method("apply_gacha_card"):
-		for card in gm.get("permanent_gacha_cards", []):
-			gm.call("apply_gacha_card", card, player, hud, get_tree(), null)
+		var cards = gm.get("permanent_gacha_cards")
+		if cards is Array:
+			for card in cards:
+				gm.call("apply_gacha_card", card, player, hud, get_tree(), null)
 
 func _setup_monoliths() -> void:
 	if monolith_left != null and monolith_left.has_signal("monolith_destroyed"):

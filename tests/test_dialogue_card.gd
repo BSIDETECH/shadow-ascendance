@@ -114,7 +114,7 @@ func test_setup_message_fallback_portrait(runner) -> void:
 
     card.setup_message("Maga", "Fallback test")
 
-    runner.assert_eq(card.portrait_rect.texture, null, "DialogueCard setup_message portrait", "Fallback portrait resource does not exist, should be null")
+    runner.assert_ne(card.portrait_rect.texture, null, "DialogueCard setup_message portrait", "Fallback portrait should be assigned from existing texture")
 
     card.queue_free()
 

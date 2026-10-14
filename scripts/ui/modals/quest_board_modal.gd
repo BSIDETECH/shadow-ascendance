@@ -256,11 +256,11 @@ func get_player_rank() -> String:
 func get_available_ranks() -> Array[String]:
 	var ranks = ["F", "E", "D", "C", "B", "A", "S"]
 	var current_rank = get_player_rank()
-	var available: Array[String] = []
-	for r in ranks:
-		available.append(r)
-		if r == current_rank:
-			break
+	var available: Array[String] = ["F", "E"]
+	var curr_idx = ranks.find(current_rank)
+	for i in range(2, ranks.size()):
+		if curr_idx >= i:
+			available.append(ranks[i])
 	return available
 
 func get_all_ranks() -> Array[String]:

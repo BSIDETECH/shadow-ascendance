@@ -90,15 +90,16 @@ func record_ally_survived() -> void:
 ## (survived * 25) + (rescues * 15) - (fallen * 35) - (reckless * 10) - (abandonment * 15)
 func calculate_agency_score() -> int:
 	var score: int = (allies_survived * 25) + (rescues_performed * 15) - (allies_fallen * 35) - (reckless_orders_issued * 10) - (abandonment_ticks * 15)
-	var tree := get_tree()
-	if tree != null and tree.root != null:
-		var gm = tree.root.get_node_or_null("GameManager")
-		if gm != null:
-			var rank = gm.get("selected_quest_rank")
-			if rank == null and gm.has_method("get_selected_quest_rank"):
-				rank = gm.get_selected_quest_rank()
-			if rank == "F" and solo_rank_f_kills > 0:
-				score += 65
+	if is_inside_tree():
+		var tree := get_tree()
+		if tree != null and tree.root != null:
+			var gm = tree.root.get_node_or_null("GameManager")
+			if gm != null:
+				var rank = gm.get("selected_quest_rank")
+				if rank == null and gm.has_method("get_selected_quest_rank"):
+					rank = gm.get_selected_quest_rank()
+				if rank == "F" and solo_rank_f_kills > 0:
+					score += 65
 	return score
 
 ## Evaluates Ending type based on organic conduct:
@@ -107,16 +108,17 @@ func calculate_agency_score() -> int:
 ## - Score >= 50 and fallen <= 1 -> GOOD_ENDING (A Aliança dos Vivos)
 ## - Fallback: BAD_ENDING if score < 0 else GOOD_ENDING
 func evaluate_ending() -> String:
-	var tree := get_tree()
 	var is_rank_f = false
-	if tree != null and tree.root != null:
-		var gm = tree.root.get_node_or_null("GameManager")
-		if gm != null:
-			var rank = gm.get("selected_quest_rank")
-			if rank == null and gm.has_method("get_selected_quest_rank"):
-				rank = gm.get_selected_quest_rank()
-			if rank == "F":
-				is_rank_f = true
+	if is_inside_tree():
+		var tree := get_tree()
+		if tree != null and tree.root != null:
+			var gm = tree.root.get_node_or_null("GameManager")
+			if gm != null:
+				var rank = gm.get("selected_quest_rank")
+				if rank == null and gm.has_method("get_selected_quest_rank"):
+					rank = gm.get_selected_quest_rank()
+				if rank == "F":
+					is_rank_f = true
 
 	if allies_deployed == 0 and not is_rank_f:
 		return "BAD_ENDING"

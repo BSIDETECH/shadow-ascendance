@@ -12,6 +12,9 @@ var _current_xp: int = 0
 var _next_level_xp: int = 8
 var _total_kills: int = 0
 var _boss_spawned: bool = false
+var _threat_progress: float = 0.0
+var _recent_kills: Array[float] = []
+var _warned_halfway: bool = false
 
 @onready var player: Player = $Player
 @onready var hud: GameHUD = $HUD
@@ -26,6 +29,8 @@ func _ready() -> void:
 	EventBus.xp_collected.connect(_on_xp_collected)
 	EventBus.enemy_died.connect(_on_enemy_died)
 	EventBus.boss_died.connect(_on_boss_died)
+	if EventBus.has_signal("enemy_escaped_calling_boss"):
+		EventBus.enemy_escaped_calling_boss.connect(_on_enemy_escaped_calling_boss)
 	gacha_screen.card_chosen.connect(_on_gacha_card_chosen)
 
 	if player != null and is_instance_valid(player):
@@ -40,8 +45,10 @@ func _ready() -> void:
 
 	var gm = get_tree().root.get_node_or_null("GameManager")
 	if gm != null and gm.has_method("apply_gacha_card"):
-		for card in gm.get("permanent_gacha_cards", []):
-			gm.call("apply_gacha_card", card, player, hud, get_tree(), gacha_screen)
+		var cards = gm.get("permanent_gacha_cards")
+		if cards is Array:
+			for card in cards:
+				gm.call("apply_gacha_card", card, player, hud, get_tree(), gacha_screen)
 
 var victory_portal: Area2D = null
 
@@ -153,13 +160,23 @@ func _physics_process(delta: float) -> void:
 	_game_time += delta
 	_spawn_timer -= delta
 
+	# Dynamic Threat Pacing (passive timer + accelerated by minion slaughter and escapes)
+	_threat_progress += delta * 1.1
+	if EventBus != null:
+		EventBus.emit_threat_progress(_threat_progress, 100.0)
+
+	if _threat_progress >= 50.0 and not _warned_halfway:
+		_warned_halfway = true
+		if EventBus != null:
+			EventBus.emit_arena_announcement("A floresta estremece... Os servos gritam pelo seu Mestre!", false)
+
 	if _spawn_timer <= 0.0:
 		_spawn_wave()
 		# Spawn interval tightens as time goes on (more aggressive pacing)
-		_spawn_timer = maxf(0.8, spawn_interval - (_game_time * 0.008))
+		_spawn_timer = maxf(0.7, spawn_interval - (_game_time * 0.01))
 
-	# Spawn Demon Boss at 60 seconds (1 minuto de batalha)
-	if _game_time >= 60.0 and not _boss_spawned:
+	# Spawn Demon Boss dynamically when threat reaches 100% or fail-safe at 70s
+	if (_threat_progress >= 100.0 or _game_time >= 70.0) and not _boss_spawned:
 		_spawn_boss()
 
 func _spawn_wave() -> void:
@@ -231,6 +248,8 @@ func _spawn_wave() -> void:
 
 func _spawn_boss() -> void:
 	_boss_spawned = true
+	if EventBus != null:
+		EventBus.emit_arena_announcement("O SENHOR DOS TÚMULOS SURGIU!", true)
 	var boss := enemy_scene.instantiate() as Enemy
 	if boss != null:
 		boss.set_type(Enemy.EnemyType.DEMON_BOSS)
@@ -266,9 +285,23 @@ func _on_enemy_died(_pos: Vector2, _xp: int) -> void:
 	_total_kills += 1
 	hud.update_kills(_total_kills)
 
+	# Dynamic Threat Progression: kills advance boss arrival
+	_threat_progress += 1.4
+	_recent_kills.append(_game_time)
+	var cutoff: float = _game_time - 3.0
+	_recent_kills = _recent_kills.filter(func(t: float): return t >= cutoff)
+	if _recent_kills.size() >= 4:
+		# Rapid slaughter streak accelerates boss arrival!
+		_threat_progress += 3.5
+
 	var tracker = get_tree().root.get_node_or_null("SilentAgencyTracker")
 	if tracker != null and tracker.has_method("record_kill"):
 		tracker.call("record_kill")
+
+func _on_enemy_escaped_calling_boss(_pos: Vector2) -> void:
+	_threat_progress += 9.0
+	if EventBus != null:
+		EventBus.emit_arena_announcement("Um servo escapou para as sombras chamando seu Mestre!", true)
 
 func _on_boss_died(boss_name: String, _pos: Vector2) -> void:
 	var gm = get_tree().root.get_node_or_null("GameManager")

@@ -9,10 +9,11 @@ enum DamageType {
 	DARK = 2,
 	FIRE = 4,
 	ICE = 8,
+	LIGHTNING = 16,
 }
 
 @export var amount: float = 10.0
-@export_flags("PHYSICAL:1", "DARK:2", "FIRE:4", "ICE:8")
+@export_flags("PHYSICAL:1", "DARK:2", "FIRE:4", "ICE:8", "LIGHTNING:16")
 var damage_type: int = DamageType.PHYSICAL
 @export var knockback_force: float = 50.0
 @export var knockback_direction: Vector2 = Vector2.ZERO

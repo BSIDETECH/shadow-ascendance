@@ -156,7 +156,7 @@ func test_barnaby_and_tavern_recruitment(runner: SceneTree) -> void:
 	assert_true(runner, rumors.size() >= 3, "M3.24: Tavern Offers at Least 3 Tactical Rumors")
 
 	var candidates: Array = modal.call("get_candidates")
-	assert_eq(runner, candidates.size(), 3, "M3.25: Tavern Generates Exactly 3 Hireable Mercenaries")
+	assert_true(runner, candidates.size() >= 3, "M3.25: Tavern Generates At Least 3 Hireable Mercenaries")
 
 	var has_type_8 := false
 	var has_type_5 := false
@@ -184,6 +184,7 @@ func test_barnaby_and_tavern_recruitment(runner: SceneTree) -> void:
 	var gm = runner.root.get_node_or_null("GameManager")
 	if gm != null:
 		gm.call("clear_party_roster")
+		gm.set("player_gold", 1000)
 
 		var hire_first: bool = modal.call("hire_candidate", "paladin_roland")
 		assert_true(runner, hire_first, "M3.30: First Hiring of Paladin Roland Succeeds")

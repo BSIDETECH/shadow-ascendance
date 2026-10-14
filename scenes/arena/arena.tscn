@@ -1,6 +1,8 @@
-[gd_scene load_steps=15 format=3 uid="uid://c6a8arena001"]
+[gd_scene load_steps=17 format=3 uid="uid://c6a8arena001"]
 
 [ext_resource type="PackedScene" path="res://scenes/env/tree.tscn" id="tree_scene"]
+[ext_resource type="PackedScene" path="res://scenes/env/destructible_urn.tscn" id="urn_scene"]
+[ext_resource type="PackedScene" path="res://scenes/env/weapon_chest.tscn" id="chest_scene"]
 [ext_resource type="Script" path="res://scripts/arena/arena.gd" id="1_arena"]
 [ext_resource type="Texture2D" path="res://assets/kenney_tiny_dungeon/Tiles/materials/tile_0037_mat.tres" id="2_floor"]
 [ext_resource type="Texture2D" path="res://assets/kenney_tiny_dungeon/Tiles/materials/tile_0038_mat.tres" id="3_floor_cracked"]
@@ -973,6 +975,30 @@ shape = SubResource("RectangleShape2D_left")
 [node name="WallRight" type="CollisionShape2D" parent="ArenaBoundaries"]
 position = Vector2(646, 0)
 shape = SubResource("RectangleShape2D_right")
+
+[node name="Destructibles" type="Node2D" parent="."]
+y_sort_enabled = true
+
+[node name="Urn1" parent="Destructibles" instance=ExtResource("urn_scene")]
+position = Vector2(-220, -140)
+
+[node name="Urn2" parent="Destructibles" instance=ExtResource("urn_scene")]
+position = Vector2(-240, -120)
+
+[node name="Urn3" parent="Destructibles" instance=ExtResource("urn_scene")]
+position = Vector2(250, 160)
+
+[node name="Urn4" parent="Destructibles" instance=ExtResource("urn_scene")]
+position = Vector2(270, 180)
+
+[node name="Urn5" parent="Destructibles" instance=ExtResource("urn_scene")]
+position = Vector2(-180, 220)
+
+[node name="Urn6" parent="Destructibles" instance=ExtResource("urn_scene")]
+position = Vector2(200, -200)
+
+[node name="WeaponChest" parent="." instance=ExtResource("chest_scene")]
+position = Vector2(0, 50)
 
 [node name="Player" parent="." instance=ExtResource("7_player")]
 position = Vector2(0, 0)

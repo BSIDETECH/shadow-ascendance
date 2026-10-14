@@ -294,9 +294,6 @@ func apply_gacha_card(card: Dictionary, player: Node, hud: Node, tree: SceneTree
 	if player == null or not is_instance_valid(player):
 		return
 
-	if not player.weapon_unlocked:
-		player.unlock_weapon()
-
 	var buff_companion = func(prop_name: String, multiplier: float = 1.0, add_value: float = 0.0):
 		var targets: Array = []
 		var group_allies := tree.get_nodes_in_group("companions")

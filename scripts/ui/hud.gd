@@ -60,8 +60,12 @@ func _ready() -> void:
 		if eb.has_signal("gold_changed"):
 			eb.gold_changed.connect(_on_gold_changed)
 
+		if eb.has_signal("arena_announcement"):
+			eb.arena_announcement.connect(show_announcement)
+
 	_setup_gold_hud()
 	_setup_potions_hud()
+	_setup_announcement_banner()
 	update_leadership_charges(3, 3)
 
 	var settings_btn := get_node_or_null("Control/Margin/TopRight/SettingsButton") as Button
@@ -258,3 +262,38 @@ func play_charge_gained_punch(pip_index: int) -> void:
 				tw.set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
 				tw.tween_property(pip, "scale", Vector2(1.25, 1.25), 0.10)
 				tw.tween_property(pip, "scale", Vector2.ONE, 0.12)
+
+var announcement_banner: Label = null
+
+func _setup_announcement_banner() -> void:
+	if announcement_banner == null:
+		announcement_banner = Label.new()
+		announcement_banner.name = "ArenaAnnouncementBanner"
+		announcement_banner.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		announcement_banner.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+		announcement_banner.set_anchors_preset(Control.PRESET_TOP_WIDE)
+		announcement_banner.offset_top = 22.0
+		announcement_banner.offset_bottom = 44.0
+		announcement_banner.add_theme_font_size_override("font_size", 11)
+		announcement_banner.add_theme_color_override("font_outline_color", Color.BLACK)
+		announcement_banner.add_theme_constant_override("outline_size", 3)
+		announcement_banner.modulate.a = 0.0
+		var ctrl = get_node_or_null("Control")
+		if ctrl != null:
+			ctrl.add_child(announcement_banner)
+
+func show_announcement(msg: String, is_danger: bool = false, duration: float = 3.2) -> void:
+	_setup_announcement_banner()
+	if announcement_banner == null:
+		return
+	announcement_banner.text = msg
+	if is_danger:
+		announcement_banner.add_theme_color_override("font_color", Color(1.0, 0.35, 0.35))
+	else:
+		announcement_banner.add_theme_color_override("font_color", Color(0.9, 0.85, 1.0))
+
+	var tween := create_tween()
+	announcement_banner.modulate.a = 0.0
+	tween.tween_property(announcement_banner, "modulate:a", 1.0, 0.25)
+	tween.tween_interval(duration)
+	tween.tween_property(announcement_banner, "modulate:a", 0.0, 0.35)

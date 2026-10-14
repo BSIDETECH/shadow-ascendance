@@ -32,6 +32,8 @@ func _start_runner() -> void:
 	await _run_economy_tests()
 	await _run_dialogue_card_tests()
 	await _run_enneagram_tests()
+	await _run_dynamic_pacing_tests()
+	await _run_weapon_chest_tests()
 
 	var elapsed_ms := Time.get_ticks_msec() - start_time
 	_print_summary(elapsed_ms)
@@ -290,3 +292,25 @@ func _run_enneagram_tests() -> void:
 		await tc.run_all(self)
 	else:
 		record_fail("Enneagram Data Harness", "run_all method missing on test_enneagram_data")
+
+func _run_dynamic_pacing_tests() -> void:
+	if not ResourceLoader.exists("res://tests/test_dynamic_pacing_and_monster_dialect.gd"):
+		record_skip("Dynamic Pacing Suite", "tests/test_dynamic_pacing_and_monster_dialect.gd not found")
+		return
+	var SuiteClass = load("res://tests/test_dynamic_pacing_and_monster_dialect.gd")
+	var suite = SuiteClass.new()
+	if suite.has_method("run_all"):
+		await suite.run_all(self)
+	else:
+		record_fail("Dynamic Pacing Suite", "run_all method missing on test_dynamic_pacing_and_monster_dialect")
+
+func _run_weapon_chest_tests() -> void:
+	if not ResourceLoader.exists("res://tests/test_weapon_chest_system.gd"):
+		record_skip("Weapon Chest System Suite", "tests/test_weapon_chest_system.gd not found")
+		return
+	var SuiteClass = load("res://tests/test_weapon_chest_system.gd")
+	var suite = SuiteClass.new()
+	if suite.has_method("run_all"):
+		await suite.run_all(self)
+	else:
+		record_fail("Weapon Chest System Suite", "run_all method missing on test_weapon_chest_system")

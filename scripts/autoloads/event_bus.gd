@@ -27,6 +27,24 @@ signal companion_rescued(companion: Node)
 signal ally_died(ally: Node)
 signal gold_changed(new_gold: int)
 
+# Monster Dialect & Dynamic Phase Pacing Signals
+signal monster_shriek(pos: Vector2, dialect: String, is_flee: bool)
+signal enemy_escaped_calling_boss(pos: Vector2)
+signal threat_progress_updated(current: float, max_val: float)
+signal arena_announcement(message: String, is_danger: bool)
+
+func emit_monster_shriek(pos: Vector2, dialect: String, is_flee: bool) -> void:
+	monster_shriek.emit(pos, dialect, is_flee)
+
+func emit_enemy_escaped_calling_boss(pos: Vector2) -> void:
+	enemy_escaped_calling_boss.emit(pos)
+
+func emit_threat_progress(curr: float, max_val: float) -> void:
+	threat_progress_updated.emit(curr, max_val)
+
+func emit_arena_announcement(msg: String, is_danger: bool = false) -> void:
+	arena_announcement.emit(msg, is_danger)
+
 func emit_boss_died(boss_name: String, pos: Vector2) -> void:
 	boss_died.emit(boss_name, pos)
 

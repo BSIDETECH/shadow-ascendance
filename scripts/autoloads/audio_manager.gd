@@ -85,6 +85,8 @@ func _load_sound_registry() -> void:
 	_register_sound("wave_clear", "res://assets/audio/music/jingles_HIT10.ogg")
 	_register_sound("order", "res://assets/audio/rpg/drawKnife1.ogg")
 	_register_sound("order_failed", "res://assets/audio/interface/error_001.ogg")
+	_register_sound("monster_shriek", "res://assets/audio/rpg/knifeSlice2.ogg")
+	_register_sound("monster_frenzy", "res://assets/audio/rpg/creak3.ogg")
 	
 	# UI
 	_register_sound("click", "res://assets/audio/interface/click_001.ogg")
@@ -142,6 +144,18 @@ func _connect_event_bus() -> void:
 		eb.spell_casted.connect(func(): play_sfx("spell", 0.08, -1.0))
 	if eb.has_signal("gacha_card_selected"):
 		eb.gacha_card_selected.connect(func(_c): play_ui("confirm"))
+	if eb.has_signal("monster_shriek"):
+		eb.monster_shriek.connect(func(_pos, _dialect, is_flee):
+			if is_flee:
+				play_sfx("monster_shriek", 0.15, -1.0)
+			else:
+				play_sfx("monster_frenzy", 0.12, -1.0)
+		)
+	if eb.has_signal("arena_announcement"):
+		eb.arena_announcement.connect(func(_msg, is_danger):
+			if is_danger:
+				play_sfx("wave_start", 0.0, 2.0)
+		)
 
 ## Plays a sound effect using voice pooling and duplicate limiting
 func play_sfx(sound_name_or_stream: Variant, pitch_variation: float = 0.05, volume_db: float = 0.0) -> AudioStreamPlayer:
