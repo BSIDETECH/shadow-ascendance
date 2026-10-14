@@ -1,7 +1,7 @@
 [gd_scene load_steps=7 format=3 uid="uid://c1m4archer00001"]
 
 [ext_resource type="Script" path="res://scripts/entities/companion_archer.gd" id="1_archer"]
-[ext_resource type="Texture2D" path="res://assets/kenney_tiny_dungeon/Tiles/tile_0088.png" id="2_texture"]
+[ext_resource type="Texture2D" path="res://assets/kenney_tiny_dungeon/Tiles/tile_0096.png" id="2_texture"]
 [ext_resource type="Script" path="res://scripts/combat/health_component.gd" id="3_health"]
 [ext_resource type="Script" path="res://scripts/combat/hurtbox_component.gd" id="4_hurtbox"]
 

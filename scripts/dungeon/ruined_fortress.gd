@@ -101,7 +101,17 @@ func _setup_victory_portal() -> void:
 		victory_portal.body_entered.connect(_on_portal_entered)
 
 func _setup_party_roster() -> void:
-	var gm = get_tree().root.get_node_or_null("GameManager")
+	var tree := get_tree()
+	var root: Node = null
+	if tree != null:
+		root = tree.root
+	elif Engine.get_main_loop() is SceneTree:
+		root = (Engine.get_main_loop() as SceneTree).root
+
+	if root == null:
+		return
+
+	var gm = root.get_node_or_null("GameManager")
 	if gm == null or not gm.has_method("get_active_party_roster"):
 		return
 
@@ -109,39 +119,57 @@ func _setup_party_roster() -> void:
 	if roster.size() == 0:
 		return
 
+	# Clean up any existing companions previously spawned
+	for child in get_children():
+		if child is CompanionBase or child.is_in_group("companions"):
+			remove_child(child)
+			child.free()
+
 	# Spawn companions from roster around player spawn point
 	var spawn_offsets: Array[Vector2] = [Vector2(-35, 30), Vector2(35, 30), Vector2(0, 45)]
-	var tracker = get_tree().root.get_node_or_null("SilentAgencyTracker")
+	var tracker = root.get_node_or_null("SilentAgencyTracker")
 	for i in range(mini(roster.size(), spawn_offsets.size())):
 		var merc_data: Dictionary = roster[i]
 		if tracker != null and tracker.has_method("record_ally_deployed"):
 			tracker.call("record_ally_deployed", merc_data)
-		var merc_class: String = merc_data.get("class", "mage")
+		var merc_class: String = merc_data.get("class_type", merc_data.get("class", "mage"))
 		var comp_node: Node2D = null
 
-		match merc_class.to_lower():
-			"paladin":
-				var PaladinClass = load("res://scripts/entities/companion_paladin.gd")
-				if PaladinClass != null:
-					comp_node = PaladinClass.new()
-			"archer":
-				var ArcherClass = load("res://scripts/entities/companion_archer.gd")
-				if ArcherClass != null:
-					comp_node = ArcherClass.new()
-			"rogue":
-				var RogueClass = load("res://scripts/entities/companion_rogue.gd")
-				if RogueClass != null:
-					comp_node = RogueClass.new()
-			_:
-				var MageClass = load("res://scripts/entities/companion_mage.gd")
-				if MageClass != null:
-					comp_node = MageClass.new()
+		var scene_path: String = "res://scenes/entities/companion/companion_" + merc_class.to_lower() + ".tscn"
+		if ResourceLoader.exists(scene_path):
+			var CompScene = load(scene_path)
+			if CompScene != null:
+				comp_node = CompScene.instantiate()
+
+		if comp_node == null:
+			match merc_class.to_lower():
+				"paladin":
+					var PaladinClass = load("res://scripts/entities/companion_paladin.gd")
+					if PaladinClass != null:
+						comp_node = PaladinClass.new()
+				"archer":
+					var ArcherClass = load("res://scripts/entities/companion_archer.gd")
+					if ArcherClass != null:
+						comp_node = ArcherClass.new()
+				"rogue":
+					var RogueClass = load("res://scripts/entities/companion_rogue.gd")
+					if RogueClass != null:
+						comp_node = RogueClass.new()
+				_:
+					var MageClass = load("res://scripts/entities/companion_mage.gd")
+					if MageClass != null:
+						comp_node = MageClass.new()
 
 		if comp_node != null:
 			comp_node.name = "Companion_%d" % (i + 1)
+			if merc_data.has("name"):
+				comp_node.set("companion_name", merc_data["name"])
 			var base_pos: Vector2 = player.global_position if (player != null and player is Node2D) else Vector2(0, 160)
 			comp_node.global_position = base_pos + spawn_offsets[i]
 			add_child(comp_node)
+			if EventBus != null and comp_node.has_method("_on_leadership_order_issued"):
+				if not EventBus.leadership_order_issued.is_connected(Callable(comp_node, "_on_leadership_order_issued")):
+					EventBus.leadership_order_issued.connect(Callable(comp_node, "_on_leadership_order_issued"))
 
 func _physics_process(delta: float) -> void:
 	if _boss_is_defeated or _is_game_over:

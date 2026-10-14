@@ -79,28 +79,32 @@ func _ready() -> void:
 	if not InputMap.has_action("skill"):
 		InputMap.add_action("skill")
 		var ev_skill := InputEventKey.new()
-		ev_skill.physical_keycode = KEY_3
+		ev_skill.physical_keycode = KEY_Q
 		InputMap.action_add_event("skill", ev_skill)
 	if not InputMap.has_action("use_health_potion"):
 		InputMap.add_action("use_health_potion")
-		var ev1 := InputEventKey.new()
-		ev1.physical_keycode = KEY_1
-		InputMap.action_add_event("use_health_potion", ev1)
+		for k in [KEY_4, KEY_F]:
+			var ev := InputEventKey.new()
+			ev.physical_keycode = k
+			InputMap.action_add_event("use_health_potion", ev)
 	if not InputMap.has_action("use_shield_potion"):
 		InputMap.add_action("use_shield_potion")
-		var ev2 := InputEventKey.new()
-		ev2.physical_keycode = KEY_2
-		InputMap.action_add_event("use_shield_potion", ev2)
+		for k in [KEY_5, KEY_G]:
+			var ev := InputEventKey.new()
+			ev.physical_keycode = k
+			InputMap.action_add_event("use_shield_potion", ev)
 	if not InputMap.has_action("use_revive_potion"):
 		InputMap.add_action("use_revive_potion")
-		var ev4 := InputEventKey.new()
-		ev4.physical_keycode = KEY_4
-		InputMap.action_add_event("use_revive_potion", ev4)
+		for k in [KEY_6, KEY_R]:
+			var ev := InputEventKey.new()
+			ev.physical_keycode = k
+			InputMap.action_add_event("use_revive_potion", ev)
 	if not InputMap.has_action("use_barrier_potion"):
 		InputMap.add_action("use_barrier_potion")
-		var ev5 := InputEventKey.new()
-		ev5.physical_keycode = KEY_5
-		InputMap.action_add_event("use_barrier_potion", ev5)
+		for k in [KEY_7, KEY_T]:
+			var ev := InputEventKey.new()
+			ev.physical_keycode = k
+			InputMap.action_add_event("use_barrier_potion", ev)
 
 	add_to_group("player")
 	

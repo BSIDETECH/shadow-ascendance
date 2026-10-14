@@ -35,6 +35,7 @@ func _start_runner() -> void:
 	await _run_game_manager_transitions_tests()
 	await _run_dynamic_pacing_tests()
 	await _run_weapon_chest_tests()
+	await _run_companion_system_tests()
 
 	var elapsed_ms := Time.get_ticks_msec() - start_time
 	_print_summary(elapsed_ms)
@@ -327,3 +328,14 @@ func _run_weapon_chest_tests() -> void:
 		await suite.run_all(self)
 	else:
 		record_fail("Weapon Chest System Suite", "run_all method missing on test_weapon_chest_system")
+
+func _run_companion_system_tests() -> void:
+	if not ResourceLoader.exists("res://tests/test_companions_system.gd"):
+		record_skip("Companion System Suite", "tests/test_companions_system.gd not found")
+		return
+	var SuiteClass = load("res://tests/test_companions_system.gd")
+	var suite = SuiteClass.new()
+	if suite.has_method("run_all"):
+		await suite.run_all(self)
+	else:
+		record_fail("Companion System Suite", "run_all method missing on test_companions_system")

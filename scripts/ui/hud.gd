@@ -66,6 +66,7 @@ func _ready() -> void:
 	_setup_gold_hud()
 	_setup_potions_hud()
 	_setup_announcement_banner()
+	_setup_party_hud()
 	update_leadership_charges(3, 3)
 
 	var settings_btn := get_node_or_null("Control/Margin/TopRight/SettingsButton") as Button
@@ -126,13 +127,13 @@ func _setup_potions_hud() -> void:
 
 func _on_potions_changed(health_count: int, shield_count: int, revive_count: int = 0, barrier_count: int = 0) -> void:
 	if health_potions_label:
-		health_potions_label.text = "[1] Poções de Vida: " + str(health_count)
+		health_potions_label.text = "[4/F] Poções de Vida: " + str(health_count)
 	if shield_potions_label:
-		shield_potions_label.text = "[2] Poções de Escudo: " + str(shield_count)
+		shield_potions_label.text = "[5/G] Poções de Escudo: " + str(shield_count)
 	if revive_potions_label:
-		revive_potions_label.text = "[4] Poções de Ressurreição: " + str(revive_count)
+		revive_potions_label.text = "[6/R] Poções de Ressurreição: " + str(revive_count)
 	if barrier_potions_label:
-		barrier_potions_label.text = "[5] Poções de Barreira: " + str(barrier_count)
+		barrier_potions_label.text = "[7/T] Poções de Barreira: " + str(barrier_count)
 
 func _on_shield_changed(current: float, _max_shield: float) -> void:
 	if shield_label:
@@ -140,15 +141,6 @@ func _on_shield_changed(current: float, _max_shield: float) -> void:
 			shield_label.text = "🛡️ Escudo: " + str(int(current))
 		else:
 			shield_label.text = ""
-
-
-	var settings_btn := get_node_or_null("Control/Margin/TopRight/SettingsButton") as Button
-	if settings_btn != null:
-		settings_btn.pressed.connect(func():
-			var pm = get_tree().root.get_node_or_null("PauseMenu")
-			if pm != null and pm.has_method("pause_game"):
-				pm.pause_game()
-		)
 
 func _setup_gold_hud() -> void:
 	if kills_label != null and kills_label.get_parent() != null:
@@ -181,12 +173,151 @@ func _create_fallback_empty_style() -> void:
 	empty.corner_radius_bottom_left = 3
 	_style_empty = empty
 
+var party_vbox: VBoxContainer = null
+var _companion_ui_entries: Array[Dictionary] = []
+
+func _setup_party_hud() -> void:
+	if party_vbox != null:
+		return
+	var vbox_parent = get_node_or_null("Control/Margin/VBox")
+	if vbox_parent == null:
+		return
+
+	party_vbox = VBoxContainer.new()
+	party_vbox.name = "PartyStatusContainer"
+	party_vbox.add_theme_constant_override("separation", 3)
+	vbox_parent.add_child(party_vbox)
+
+func _update_party_hud() -> void:
+	if not is_inside_tree():
+		return
+	if party_vbox == null:
+		_setup_party_hud()
+	if party_vbox == null:
+		return
+
+	var tree := get_tree()
+	if tree == null:
+		return
+	var companions := tree.get_nodes_in_group("companions")
+	if companions.is_empty():
+		party_vbox.visible = false
+		return
+
+	party_vbox.visible = true
+
+	var needs_rebuild := false
+	if _companion_ui_entries.size() != companions.size():
+		needs_rebuild = true
+	else:
+		for i in range(companions.size()):
+			if _companion_ui_entries[i].node != companions[i]:
+				needs_rebuild = true
+				break
+
+	if needs_rebuild:
+		_rebuild_party_hud(companions)
+
+	for entry in _companion_ui_entries:
+		var comp: Node = entry.node
+		if not is_instance_valid(comp):
+			continue
+		var hc: HealthComponent = comp.get_node_or_null("HealthComponent") as HealthComponent
+		if hc == null:
+			continue
+
+		var cur_hp: float = hc.current_health
+		var max_hp: float = maxf(1.0, hc.max_health)
+		entry.bar.max_value = max_hp
+		entry.bar.value = cur_hp
+
+		if comp.get("is_dying") or (hc.current_health <= 0.0 and not hc.get("is_downed")):
+			entry.status.text = "💀 BAIXA"
+			entry.status.add_theme_color_override("font_color", Color(0.6, 0.6, 0.6))
+			entry.bar.modulate = Color(0.4, 0.4, 0.4, 0.8)
+		elif hc.get("is_downed"):
+			entry.status.text = "⚠️ CAÍDO!"
+			entry.status.add_theme_color_override("font_color", Color(1.0, 0.3, 0.3))
+			entry.bar.modulate = Color(1.0, 0.2, 0.2, 1.0)
+		else:
+			entry.status.text = "%d/%d" % [int(cur_hp), int(max_hp)]
+			entry.status.add_theme_color_override("font_color", Color(0.85, 0.9, 1.0))
+			var ratio: float = cur_hp / max_hp
+			if ratio > 0.5:
+				entry.bar.modulate = Color(0.3, 0.9, 0.4, 1.0)
+			elif ratio > 0.25:
+				entry.bar.modulate = Color(1.0, 0.8, 0.2, 1.0)
+			else:
+				entry.bar.modulate = Color(1.0, 0.3, 0.2, 1.0)
+
+func _rebuild_party_hud(companions: Array) -> void:
+	for child in party_vbox.get_children():
+		child.queue_free()
+	_companion_ui_entries.clear()
+
+	var title := Label.new()
+	title.text = "GRUPO DE ALIADOS"
+	title.add_theme_font_size_override("font_size", 9)
+	title.add_theme_color_override("font_color", Color(0.5, 0.85, 1.0, 0.95))
+	party_vbox.add_child(title)
+
+	for comp in companions:
+		if not is_instance_valid(comp):
+			continue
+		var comp_name: String = str(comp.get("companion_name")) if comp.get("companion_name") != null else "Aliado"
+		var icon_prefix := "🛡️ " if comp is CompanionPaladin or comp.name.contains("Paladin") else ("🏹 " if comp is CompanionArcher or comp.name.contains("Archer") else ("🔥 " if comp is CompanionMage or comp.name.contains("Mage") else "🗡️ "))
+
+		var row := HBoxContainer.new()
+		row.add_theme_constant_override("separation", 4)
+
+		var name_lbl := Label.new()
+		name_lbl.text = icon_prefix + comp_name
+		name_lbl.add_theme_font_size_override("font_size", 9)
+		name_lbl.add_theme_color_override("font_color", Color(0.9, 0.92, 0.98))
+		name_lbl.custom_minimum_size = Vector2(72, 0)
+		row.add_child(name_lbl)
+
+		var bar := ProgressBar.new()
+		bar.custom_minimum_size = Vector2(75, 7)
+		bar.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+		bar.show_percentage = false
+		var bg_style := StyleBoxFlat.new()
+		bg_style.bg_color = Color(0.15, 0.15, 0.18, 0.8)
+		bg_style.corner_radius_top_left = 2
+		bg_style.corner_radius_top_right = 2
+		bg_style.corner_radius_bottom_right = 2
+		bg_style.corner_radius_bottom_left = 2
+		var fill_style := StyleBoxFlat.new()
+		fill_style.bg_color = Color.WHITE
+		fill_style.corner_radius_top_left = 2
+		fill_style.corner_radius_top_right = 2
+		fill_style.corner_radius_bottom_right = 2
+		fill_style.corner_radius_bottom_left = 2
+		bar.add_theme_stylebox_override("background", bg_style)
+		bar.add_theme_stylebox_override("fill", fill_style)
+		row.add_child(bar)
+
+		var status_lbl := Label.new()
+		status_lbl.text = "100%"
+		status_lbl.add_theme_font_size_override("font_size", 8)
+		status_lbl.add_theme_color_override("font_color", Color(0.8, 0.8, 0.8))
+		row.add_child(status_lbl)
+
+		party_vbox.add_child(row)
+
+		_companion_ui_entries.append({
+			"node": comp,
+			"bar": bar,
+			"status": status_lbl
+		})
+
 func _process(delta: float) -> void:
 	_survival_seconds += delta
 	var minutes := int(_survival_seconds / 60.0)
 	var seconds := int(_survival_seconds) % 60
 	if time_label != null:
 		time_label.text = "Tempo: %02d:%02d" % [minutes, seconds]
+	_update_party_hud()
 
 func update_health(current: float, max_hp: float) -> void:
 	if hp_bar != null:

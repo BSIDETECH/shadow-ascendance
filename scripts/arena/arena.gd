@@ -124,9 +124,6 @@ func _setup_party_roster() -> void:
 		var comp_node = null
 
 		var scene_path = "res://scenes/entities/companion/companion_" + merc_class.to_lower() + ".tscn"
-		if merc_class.to_lower() == "rogue":
-			scene_path = "res://scenes/entities/companion/companion_rogue.tscn"
-
 		if not ResourceLoader.exists(scene_path):
 			scene_path = "res://scenes/entities/companion/companion.tscn"
 
@@ -136,6 +133,8 @@ func _setup_party_roster() -> void:
 
 		if comp_node != null:
 			comp_node.name = "Companion" if i == 0 else ("Companion_%d" % (i + 1))
+			if merc_data.has("name"):
+				comp_node.set("companion_name", merc_data["name"])
 			var base_pos: Vector2 = player.global_position if (player != null and is_instance_valid(player)) else Vector2(0, 0)
 			comp_node.global_position = base_pos + spawn_offsets[i]
 			add_child(comp_node)
