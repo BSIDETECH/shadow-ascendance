@@ -64,3 +64,4 @@
 - `scenes/arena/arena.tscn` & `scripts/arena/arena.gd`
 - `tests/test_ux_refactor_suite.gd`
 - [ ] Implement Mana system and Mana Potions (deferred to backlog as per user request).
+- [ ] Build the complete inventory screen, enemy drop logic, shop, and skill integration in a single, major structural update (deferred to backlog, to be done after the skills system).
