@@ -16,6 +16,8 @@ class MockPlayer extends Node:
 
 class MockCompanion extends Node:
 	var max_health: float = 100.0
+	var damage_mult: float = 1.0
+	var armor: float = 10.0
 
 	func _init() -> void:
 		add_to_group("companions")
@@ -25,6 +27,43 @@ class MockCompanion extends Node:
 
 func run_all(runner: SceneTree) -> void:
 	await _test_relics(runner)
+	await _test_apply_relic_to_companion(runner)
+
+func _test_apply_relic_to_companion(runner: SceneTree) -> void:
+	var relic_system = null
+	if runner.root.has_node("RelicSystem"):
+		relic_system = runner.root.get_node("RelicSystem")
+	else:
+		relic_system = load("res://scripts/systems/relic_system.gd").new()
+		relic_system.name = "RelicSystem"
+		runner.root.add_child(relic_system)
+
+	var companion = MockCompanion.new()
+	runner.root.add_child(companion)
+
+	# 1. Test max_health relic
+	var health_relic = load("res://scripts/systems/relic_data.gd").new("health_relic", "Health Relic", "+50% health", 0, "companion", "max_health", 0.50)
+	relic_system.apply_relic_to_companion(companion, health_relic)
+
+	assert(is_equal_approx(companion.max_health, 150.0), "Companion max_health should be 150.0")
+	var hc = companion.get_node("HealthComponent") as MockHealthComponent
+	assert(is_equal_approx(hc.max_health, 150.0), "Companion HealthComponent max_health should be 150.0")
+	assert(is_equal_approx(hc.current_health, 150.0), "Companion HealthComponent current_health should be 150.0")
+
+	# 2. Test _mult stat (e.g. damage_mult)
+	var dmg_relic = load("res://scripts/systems/relic_data.gd").new("dmg_relic", "Damage Relic", "+20% damage", 0, "companion", "damage_mult", 0.20)
+	relic_system.apply_relic_to_companion(companion, dmg_relic)
+
+	assert(is_equal_approx(companion.damage_mult, 1.20), "Companion damage_mult should be 1.20")
+
+	# 3. Test basic stat addition (e.g. armor)
+	var armor_relic = load("res://scripts/systems/relic_data.gd").new("armor_relic", "Armor Relic", "+5 armor", 0, "companion", "armor", 5.0)
+	relic_system.apply_relic_to_companion(companion, armor_relic)
+
+	assert(is_equal_approx(companion.armor, 15.0), "Companion armor should be 15.0")
+
+	companion.queue_free()
+	print("[OK] _test_apply_relic_to_companion passed successfully")
 
 func _test_relics(runner: SceneTree) -> void:
 	# Add RelicSystem dynamically for the test if it's not already in the tree
