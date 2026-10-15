@@ -10,6 +10,7 @@ func run_all(runner: SceneTree) -> void:
 	await test_companion_leadership_orders_reception(runner)
 	await test_party_hud_companion_tracking(runner)
 	await test_ruined_fortress_companion_spawning(runner)
+	await test_companion_paladin_deploy_aegis_shield(runner)
 
 func test_companion_scenes_exist_and_instantiate(runner: SceneTree) -> void:
 	var scenes := [
@@ -171,3 +172,32 @@ func test_ruined_fortress_companion_spawning(runner: SceneTree) -> void:
 
 	runner.root.remove_child(fortress)
 	fortress.free()
+
+
+func test_companion_paladin_deploy_aegis_shield(runner: SceneTree) -> void:
+	var paladin_scene := load("res://scenes/entities/companion/companion_paladin.tscn") as PackedScene
+	var paladin = paladin_scene.instantiate() as CompanionBase
+	var mock_parent = Node2D.new()
+	runner.root.add_child(mock_parent)
+	mock_parent.add_child(paladin)
+
+	paladin.global_position = Vector2(100, 100)
+	paladin.deploy_aegis_shield()
+
+	var bubbles = []
+	for c in mock_parent.get_children():
+		if c.get_script() != null and c.get_script().resource_path.ends_with("shield_bubble.gd"):
+			bubbles.append(c)
+
+	runner.assert_eq(bubbles.size(), 1, "COMP.32: Paladin deploys exactly 1 Aegis Shield bubble")
+	if bubbles.size() > 0:
+		var bubble = bubbles[0]
+		runner.assert_almost_eq(bubble.damage_reduction, 0.30, 0.01, "COMP.33: Aegis Shield damage reduction is 30%")
+		runner.assert_almost_eq(bubble.radius, 60.0, 0.01, "COMP.34: Aegis Shield radius is 60.0")
+		runner.assert_almost_eq(bubble.lifetime, 4.5, 0.01, "COMP.35: Aegis Shield lifetime is 4.5s")
+		runner.assert_eq(bubble.global_position, Vector2(100, 100), "COMP.36: Aegis Shield spawned at Paladin position")
+
+	mock_parent.remove_child(paladin)
+	paladin.free()
+	runner.root.remove_child(mock_parent)
+	mock_parent.free()
